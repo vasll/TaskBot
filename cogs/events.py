@@ -1,11 +1,12 @@
-''' Handles the events Cog '''
-from discord.ext import commands
+""" Handles the events Cog """
 import discord
+from discord.ext import commands
 from loggers import logger
 
 
 class Events(commands.Cog):
-    ''' Cog that handles events '''
+    """ Cog that handles events """
+
     def __init__(self, bot):
         self.bot = bot
 

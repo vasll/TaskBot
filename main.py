@@ -1,9 +1,8 @@
-''' Runs the bot with the token from a config.py file '''
+""" Runs the bot with the token from a config.py file """
 import discord
 from discord.ext import commands
 from cogs import tasks, events
 import config
-import loggers
 from loggers import logger
 
 logger.info('Starting bot')
