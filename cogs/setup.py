@@ -1,22 +1,28 @@
 """ Handles the setup Cog """
 from discord.ext import commands
 import discord
+from discord import Colour
+from discord import Option
 from discord.commands.context import ApplicationContext
 from loggers import logger
+from database import session
+from schemas import Configs
 
 
 class Setup(commands.Cog):
-    """ Cog that contains all the commands related to tasks """
+    """ Cog that contains all the commands for setting up the bot """
 
     def __init__(self, bot):
         self.bot = bot
 
-    @discord.command(name="create_roles", description="Sets up the required roles in the server")
+    @discord.command(name="configure", description="Configures the bot by creating roles and binding a text channel")
     @commands.has_permissions(manage_roles=True)
-    async def create_roles(self, ctx: ApplicationContext):
-        logger.debug(f'guild.id={ctx.guild.id} cmd=create_roles')
-        await ctx.response.defer(ephemeral=True)
-        embed = discord.Embed(title=":busts_in_silhouette: Roles setup", color=0x77b255)
+    async def configure(self, ctx: ApplicationContext,
+                        tasks_channel: Option(discord.TextChannel, description='Text channel where tasks will be sent')
+                        ):
+        logger.debug(f'[guild {ctx.guild.id}] [configure()]')
+        await ctx.response.defer()
+        embed = discord.Embed(title=":gear: Bot configuration", colour=Colour.green())
 
         # Get roles from server
         roles_names = [role.name for role in await ctx.guild.fetch_roles()]
@@ -24,23 +30,33 @@ class Setup(commands.Cog):
         # @tasks-manager role
         try:
             if 'tasks-manager' in roles_names:
-                embed.add_field(name="@tasks-manager", value=":stop_button: Role exists already", inline=False)
+                embed.add_field(name="@tasks-manager", value=":white_check_mark: Role exists already", inline=False)
             else:
-                await ctx.guild.create_role(name='tasks-manager', colour=discord.Colour(0x03fcba))
+                await ctx.guild.create_role(name='tasks-manager', colour=Colour.teal())
                 embed.add_field(name="@tasks-manager", value=":white_check_mark: Role created", inline=False)
         except Exception as _:
             embed.add_field(name="@tasks-manager", value=":x: Can't create role", inline=False)
-            embed.colour = 0xfbff00
+            embed.colour = Colour.red()
 
         # @tasks role
         try:
             if 'tasks' in roles_names:
-                embed.add_field(name="@tasks", value=":stop_button: Role exists already", inline=False)
+                embed.add_field(name="@tasks", value=":white_check_mark: Role exists already", inline=False)
             else:
-                await ctx.guild.create_role(name='tasks', colour=discord.Colour(0x00c8ff))
+                await ctx.guild.create_role(name='tasks', colour=Colour.dark_teal())
                 embed.add_field(name="@tasks", value=":white_check_mark: Role created", inline=False)
         except Exception as _:
             embed.add_field(name="@tasks", value=":x: Can't create role", inline=False)
-            embed.colour = 0xfbff00
+            embed.colour = Colour.red()
+
+        # Add config to db
+        try:
+            config = Configs(ctx.guild.id, tasks_channel.id)
+            session.add(config)
+            session.commit()
+            embed.add_field(name="Config", value=":white_check_mark: Configuration saved", inline=False)
+        except Exception as _:
+            embed.add_field(name="Config", value=":x: Couldn't save configuration", inline=False)
+            embed.colour = Colour.red()
 
         await ctx.respond(embed=embed)
