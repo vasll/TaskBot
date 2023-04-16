@@ -293,3 +293,6 @@ config.py
 
 ./logs
 /logs
+
+./taskbot.db
+/taskbot.db

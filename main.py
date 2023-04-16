@@ -1,9 +1,10 @@
 """ Runs the bot with the token from a config.py file """
 import discord
 from discord.ext import commands
-from cogs import tasks, events
+from cogs import tasks, events, setup
 import config
 from loggers import logger
+
 
 logger.info('Starting bot')
 
@@ -13,7 +14,9 @@ bot = commands.Bot(intents=intents)
 
 # Cogs
 bot.add_cog(tasks.Tasks(bot))
+bot.add_cog(setup.Setup(bot))
 bot.add_cog(events.Events(bot))
+
 
 # Run the bot
 bot.run(config.bot['token'])
