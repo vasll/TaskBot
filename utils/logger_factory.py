@@ -5,7 +5,7 @@ from logging import Formatter
 
 
 def make_logger(name: str, file: str, level=logging.DEBUG, to_file=True, to_stdout=True, create_dirs=True,
-                formatter=Formatter('[%(asctime)s] [%(levelname)s] [%(module)s] %(message)s')) -> logging.Logger:
+                formatter=Formatter(f'[%(asctime)s] [%(name)s] [%(levelname)s] [%(module)s] %(message)s')) -> logging.Logger:
     """ Creates and returns a new logger """
     logger = logging.getLogger(name)
     logger.setLevel(level)
