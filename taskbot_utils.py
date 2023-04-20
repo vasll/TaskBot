@@ -1,7 +1,9 @@
 """ Contains some random utilities for the taskbot """
 import logging
 import os
+import requests
 from logging import Formatter
+import json
 
 # VARIABLES
 gmt_timezones = ['Etc/GMT+0', 'Etc/GMT+1', 'Etc/GMT+2', 'Etc/GMT+3', 'Etc/GMT+4', 'Etc/GMT+5', 'Etc/GMT+6', 'Etc/GMT+7',
@@ -35,3 +37,12 @@ def make_logger(name: str, file: str, level=logging.DEBUG, to_file=True, to_stdo
         logger.addHandler(stream_handler)
 
     return logger
+
+
+def get_motivational_quote():
+    """ Returns a motivational quote from api.quotable.io"""
+    try:
+        response = requests.get("https://api.quotable.io/quotes/random?tags=motivational")
+        return json.loads(response.text)[0]
+    except Exception as _:
+        return None

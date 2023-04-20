@@ -36,11 +36,13 @@ class Configs(Base):
     id = Column("id", Integer, primary_key=True, autoincrement=True)
     guild_id = Column("guild_id", Integer, unique=True)
     tasks_channel_id = Column("tasks_channel_id", Integer)
+    tasks_role_id = Column("tasks_role_id", Integer)
     timezone = Column("timezone", String, default='Europe/Rome')
 
-    def __init__(self, guild_id: int, tasks_channel_id: int, id: int = None, timezone: str = None):
+    def __init__(self, guild_id: int, tasks_channel_id: int, tasks_role_id: int, id: int = None, timezone: str = None):
         self.id = id
         self.guild_id = guild_id
+        self.tasks_role_id = tasks_role_id
         self.tasks_channel_id = tasks_channel_id
         self.timezone = timezone
 

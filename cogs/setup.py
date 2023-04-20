@@ -59,11 +59,17 @@ class Setup(commands.Cog):
 
         # Add config to db
         try:
-            config = Configs(guild_id=ctx.guild.id, tasks_channel_id=tasks_channel.id, timezone=timezone)
+            config = Configs(
+                guild_id = ctx.guild.id, 
+                tasks_channel_id = tasks_channel.id, 
+                tasks_role_id = discord.utils.get(ctx.guild.roles, name="tasks").id, 
+                timezone = timezone
+            )
             session.add(config)
             session.commit()
             embed.add_field(name="Configuration", value=":white_check_mark: Configuration saved", inline=False)
         except Exception as _:
+            print(_)
             embed.add_field(name="Configuration", value=":x: Couldn't save configuration", inline=False)
             embed.colour = Colour.red()
 
