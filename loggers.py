@@ -1,6 +1,6 @@
 """ Sets up the loggers for this project """
 from datetime import datetime
-from utils.logger_factory import make_logger
+from taskbot_utils import make_logger
 
 
 log_dir = 'logs'

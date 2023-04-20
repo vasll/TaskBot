@@ -3,7 +3,7 @@ from discord.ext import commands
 import discord
 from discord import Colour, Option
 from discord.commands.context import ApplicationContext
-from utils.gmt_timezones import gmt_timezones
+from taskbot_utils import gmt_timezones
 from loggers import logger
 from database import session
 from schemas import Configs
