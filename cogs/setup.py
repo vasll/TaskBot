@@ -6,7 +6,7 @@ from discord.commands.context import ApplicationContext
 from taskbot_utils import gmt_timezones
 from loggers import logger
 from database import session
-from schemas import Configs
+import schemas
 
 
 class Setup(commands.Cog):
@@ -59,13 +59,13 @@ class Setup(commands.Cog):
 
         # Add config to db
         try:
-            config = Configs(
+            server_config = schemas.ServerConfigs(
                 guild_id = ctx.guild.id, 
                 tasks_channel_id = tasks_channel.id, 
                 tasks_role_id = discord.utils.get(ctx.guild.roles, name="tasks").id, 
                 timezone = timezone
             )
-            session.add(config)
+            session.add(server_config)
             session.commit()
             embed.add_field(name="Configuration", value=":white_check_mark: Configuration saved", inline=False)
         except Exception as _:

@@ -19,6 +19,5 @@ bot.add_cog(tasks.Tasks(bot))
 bot.add_cog(setup.Setup(bot))
 bot.add_cog(events.Events(bot))
 
-
 # Run the bot
 bot.run(config.bot['token'])

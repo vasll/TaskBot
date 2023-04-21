@@ -6,12 +6,8 @@ from discord.commands.context import ApplicationContext
 from loggers import logger
 from database import session
 import schemas
-from datetime import datetime
 from taskbot_utils import get_motivational_quote
 
-
-# Ideas:
-# Add a random motivational phrase as a footer on the embed
 
 class Tasks(commands.Cog):
     """ Cog that contains all the commands related to tasks """
@@ -23,13 +19,13 @@ class Tasks(commands.Cog):
     async def add_task_now(
             self, ctx: ApplicationContext,
             description: Option(str, description="Description of task", required=True),
-            title: Option(str, description="Title of task", required=False, default="Task del giorno")
+            title: Option(str, description="Title of task", required=False, default="Task of the day")
     ):
         logger.debug(f'[guild {ctx.guild.id}] [add_task()]')
         await ctx.response.defer(ephemeral=True)
 
-        # Get the chat where to send the task based on guild
-        config = session.query(schemas.Configs).filter_by(guild_id=ctx.guild_id).first()
+        # Load config data [tasks role id, tasks text channel id]
+        config = session.query(schemas.ServerConfigs).filter_by(guild_id=ctx.guild_id).first()
 
         if config is None:
             return await ctx.respond("Bot was not configured\nRun the `/configure` command first")

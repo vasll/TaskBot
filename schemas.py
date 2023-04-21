@@ -1,6 +1,18 @@
 """ Contains the schemas for the sqlite database """
-from sqlalchemy import Integer, String, Column, Boolean
+from sqlalchemy import ForeignKey, Integer, PrimaryKeyConstraint, String, Column, Boolean
 from database import Base, engine
+
+
+class Users(Base):
+    """ Keeps the id of a Discord user """
+    __tablename__ = 'users'
+
+    id = Column("id", Integer, primary_key=True, autoincrement=False)
+    def __init__(self, id: int):
+        self.id = id
+    
+    def __repr__(self):
+        return f"User -> id:{self.id}"
 
 
 class Tasks(Base):
@@ -8,30 +20,45 @@ class Tasks(Base):
     __tablename__ = 'tasks'
 
     id = Column("id", Integer, primary_key=True, autoincrement=True)
-    discord_user_id = Column("discord_user_id", Integer)
-    insertion_date = Column("insertion_date", String)
-    due_date = Column("due_date", String)
-    content = Column("content", String, default="")
-    has_been_sent = Column("has_been_sent", Boolean, default=False)
+    title = Column("title", String)
+    description = Column("description", String)
+    inserted_at = Column("inserted_at", String)
+    publish_at = Column("publish_at", String)
+    has_been_sent = Column("has_been_sent", Boolean)
+    id_creator = Column("id_creator", ForeignKey("users.id"))
 
-    def __init__(
-            self, discord_user_id: int, insertion_date: str, due_date: str, content: str,
-            id: int = None, has_been_sent: bool = None
-    ):
+    def __init__(self, title, description, inserted_at, publish_at, has_been_sent, id_creator, id = None):
         self.id = id
-        self.discord_user_id = discord_user_id
-        self.insertion_date = insertion_date
-        self.due_date = due_date
-        self.content = content
+        self.title = title
+        self.description = description
+        self.inserted_at = inserted_at
+        self.publish_at = publish_at
         self.has_been_sent = has_been_sent
+        self.id_creator = id_creator
 
     def __repr__(self):
-        return f"{self.id} {self.discord_user_id} {self.insertion_date} {self.due_date} {self.content} {self.has_been_sent}"
+        return f"Task -> id:{self.id} title:{self.title} description:{self.description} "+\
+               f"inserted_at:{self.inserted_at} publish_at:{self.publish_at} "+\
+               f"has_been_sent:{self.has_been_sent} id_creator{self.id_creator}"
 
 
-class Configs(Base):
-    """ Keeps the configuration for the discord server """
-    __tablename__ = 'configs'
+class Users_Tasks(Base):
+    """ Join table between users and tasks """
+    __tablename__ = 'users_tasks'
+    
+    user_id = Column("user_id", ForeignKey("users.id"), primary_key=True)
+    task_id = Column("task_id", ForeignKey("tasks.id"), primary_key=True)
+    is_completed = Column("is_completed", Boolean)
+
+    def __init__(self, user_id, task_id, is_completed):
+        self.user_id = user_id
+        self.task_id = task_id
+        self.is_completed = is_completed
+
+
+class ServerConfigs(Base):
+    """ Keeps the configuration for discord servers """
+    __tablename__ = 'server_configs'
 
     id = Column("id", Integer, primary_key=True, autoincrement=True)
     guild_id = Column("guild_id", Integer, unique=True)
