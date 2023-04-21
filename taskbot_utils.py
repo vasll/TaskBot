@@ -27,7 +27,7 @@ def make_logger(name: str, file: str, level=logging.DEBUG, to_file=True, to_stdo
             os.makedirs(path)
 
     if to_file:
-        file_handler = logging.FileHandler(file)
+        file_handler = logging.FileHandler(file, encoding='utf-8')
         file_handler.setFormatter(formatter)
         logger.addHandler(file_handler)
 
