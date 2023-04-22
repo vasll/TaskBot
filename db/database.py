@@ -5,7 +5,7 @@ from sqlalchemy.orm import sessionmaker
 
 # Database config
 Base = declarative_base()
-engine = create_engine(f'sqlite:///taskbot.db', echo=True)
+engine = create_engine(f'sqlite:///db/taskbot.db', echo=True)
 
 Session = sessionmaker(bind=engine)
 session = Session()

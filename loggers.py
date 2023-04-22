@@ -1,4 +1,4 @@
-""" Sets up the loggers for this project """
+""" Sets up the loggers for the TaskBot project """
 from datetime import datetime
 from taskbot_utils import make_logger
 

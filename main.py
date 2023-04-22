@@ -1,12 +1,13 @@
 """ Runs the TaskBot with a token from the config.py file """
 import config
 from loggers import logger
-from schemas import create_all_tables
+import db.schemas
 from task_bot import TaskBot
 
+# Create the db with tables if they don't exist
+db.schemas.create_all_tables()
 
 # Run the bot
-create_all_tables()  # This is optional
 logger.info('Starting TaskBot')
 bot = TaskBot()
 bot.run(config.bot['token'])

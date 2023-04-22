@@ -294,5 +294,5 @@ config.py
 ./logs
 /logs
 
-./taskbot.db
-/taskbot.db
+./db/taskbot.db
+db/taskbot.db

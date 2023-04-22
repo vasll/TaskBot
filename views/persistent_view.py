@@ -1,8 +1,10 @@
-import discord, schemas
+import discord, db.schemas as schemas
 from sqlalchemy import update
 from discord.ui import Button, View
 from discord import ButtonStyle, Interaction, ui
-from database import session
+from db import db_utils
+from db.database import session
+from loggers import logger
 
 
 class PersistentView(View):
@@ -11,17 +13,14 @@ class PersistentView(View):
     
     @ui.button(label='Completed', style=ButtonStyle.green, custom_id='task_completed')
     async def green(self, button: Button, interaction: Interaction):
-        # Check first if user is in db
-        db_user = session.query(schemas.Users).filter_by(id=interaction.user.id).first()
-        if db_user is None:
-            session.add(schemas.Users(id=interaction.user.id))
-            session.commit()
-            db_user = session.query(schemas.Users).filter_by(id=interaction.user.id).first()
+        # Create the user if it doesn't exist
+        try:
+            db_utils.create_user_if_not_exists(session, interaction.user.id)
+        except Exception as e:
+            logger.error(f"Exception while creating user in db: {e}")
 
         # Get task from db
-        db_task = session.query(schemas.Tasks).filter_by(
-            task_message_id=interaction.message.id
-        ).first()
+        db_task = session.query(schemas.Tasks).filter_by(task_message_id=interaction.message.id).first()
         if db_task is None:
             return await interaction.response.send_message('Error: Task not found', ephemeral=True)
         
@@ -37,17 +36,25 @@ class PersistentView(View):
             db_users_tasks.is_completed = True
             session.commit()
         
-        await interaction.response.send_message('Marked as completed!', ephemeral=True)
+        completed_count = session.query(schemas.Users_Tasks).filter_by(
+            task_id = db_task.id,
+            is_completed = True
+        ).count()
+        button.label = f"{completed_count} Completed"
+        
+        not_completed_count = session.query(schemas.Users_Tasks).filter_by(
+            task_id = db_task.id,
+            is_completed = False
+        ).count()
+        self.get_item('task_not_completed').label = f"{not_completed_count} Not completed"
+        
+        await interaction.response.edit_message(view=self)
 
 
     @ui.button(label='Not completed', style=ButtonStyle.red, custom_id='task_not_completed')
     async def not_completed(self, button: Button, interaction: Interaction):
-        # Check first if user is in db
-        db_user = session.query(schemas.Users).filter_by(id=interaction.user.id).first()
-        if db_user is None:
-            session.add(schemas.Users(id=interaction.user.id))
-            session.commit()
-            db_user = session.query(schemas.Users).filter_by(id=interaction.user.id).first()
+        # Create the user if it doesn't exist
+        db_utils.create_user_if_not_exists(session, interaction.user.id)
 
         # Get task from db
         db_task = session.query(schemas.Tasks).filter_by(
@@ -68,4 +75,15 @@ class PersistentView(View):
             db_users_tasks.is_completed = False
             session.commit()
         
-        await interaction.response.send_message('Marked as not completed!', ephemeral=True)
+        not_completed_count = session.query(schemas.Users_Tasks).filter_by(
+            task_id = db_task.id,
+            is_completed = False
+        ).count()
+        button.label = f"{not_completed_count} Not completed"
+        
+        completed_count = session.query(schemas.Users_Tasks).filter_by(
+            task_id = db_task.id,
+            is_completed = True
+        ).count()
+        self.get_item('task_completed').label = f"{completed_count} Completed"
+        await interaction.response.edit_message(view=self)

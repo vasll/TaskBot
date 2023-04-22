@@ -1,11 +1,11 @@
 """ Handles the tasks Cog """
-import schemas, pytz, discord
+import db.schemas as schemas, pytz, discord
 from discord.ext import commands
 from discord import Option
 from discord.interactions import Interaction
 from discord.commands.context import ApplicationContext
 from loggers import logger
-from database import session
+from db.database import session
 from datetime import datetime
 from views.persistent_view import PersistentView
 
@@ -16,8 +16,8 @@ class Tasks(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
-    @discord.command(name="views", description="TODO")
-    async def views(
+    @discord.command(name="add_task", description="Sends a task into the tasks channel of your server")
+    async def add_task(
         self, ctx: ApplicationContext, 
         description: Option(str, description="Description of task", required=True),
         title: Option(str, description="Title of task", required=False, default="Task of the day")
@@ -76,3 +76,9 @@ class Tasks(commands.Cog):
             print(e)
         
         await ctx.respond(f"Task has been sent in the {tasks_channel.mention} channel!")
+
+    #! TODO this command is just for development purposes, delete it later
+    @discord.command(name="rmall", description="Removes all messages from a textChannel")
+    async def rmall(self, ctx: ApplicationContext):
+        for message in await ctx.channel.history(limit=500).flatten():
+            await message.delete()

@@ -1,6 +1,6 @@
-""" Contains the schemas for the sqlite database """
-from sqlalchemy import ForeignKey, Integer, PrimaryKeyConstraint, String, Column, Boolean
-from database import Base, engine
+""" Contains the schemas for the TaskBot's sqlite database """
+from sqlalchemy import ForeignKey, Integer, String, Column, Boolean
+from db.database import Base, engine
 
 
 class Users(Base):
@@ -16,7 +16,7 @@ class Users(Base):
 
 
 class Tasks(Base):
-    """ Represents a task  """
+    """ Represents a task """
     __tablename__ = 'tasks'
 
     id = Column("id", Integer, primary_key=True, autoincrement=True)
@@ -49,7 +49,7 @@ class Tasks(Base):
 
 
 class Users_Tasks(Base):
-    """ Join table between users and tasks """
+    """ Join table between users and tasks (many to many relationship) """
     __tablename__ = 'users_tasks'
     
     user_id = Column("user_id", ForeignKey("users.id"), primary_key=True)
