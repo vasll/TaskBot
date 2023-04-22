@@ -25,21 +25,27 @@ class Tasks(Base):
     inserted_at = Column("inserted_at", String)
     publish_at = Column("publish_at", String)
     has_been_sent = Column("has_been_sent", Boolean)
+    task_message_id = Column("task_message_id", Integer, unique=True)
     id_creator = Column("id_creator", ForeignKey("users.id"))
 
-    def __init__(self, title, description, inserted_at, publish_at, has_been_sent, id_creator, id = None):
+    def __init__(
+            self, title, description, inserted_at, publish_at, has_been_sent, 
+            task_message_id, id_creator, id = None,
+        ) -> None:
         self.id = id
         self.title = title
         self.description = description
         self.inserted_at = inserted_at
         self.publish_at = publish_at
         self.has_been_sent = has_been_sent
+        self.task_message_id = task_message_id
         self.id_creator = id_creator
 
     def __repr__(self):
         return f"Task -> id:{self.id} title:{self.title} description:{self.description} "+\
                f"inserted_at:{self.inserted_at} publish_at:{self.publish_at} "+\
-               f"has_been_sent:{self.has_been_sent} id_creator{self.id_creator}"
+               f"has_been_sent:{self.has_been_sent} task_message_id: {self.task_message_id} "+\
+               f"id_creator{self.id_creator}"
 
 
 class Users_Tasks(Base):
