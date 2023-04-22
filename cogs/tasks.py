@@ -1,16 +1,17 @@
 """ Handles the tasks Cog """
 from discord.ext import commands
 import discord
-from discord.ui import Select, View
+from discord.ui import Select, View, Button
 from discord import ButtonStyle, Option, SelectOption
 from discord.interactions import Interaction
 from discord.commands.context import ApplicationContext
+from sqlalchemy import insert
 from loggers import logger
 from database import session
 from datetime import datetime
 import schemas
 import pytz
-from taskbot_utils import get_motivational_quote
+from views.persistent_view import PersistentView
 
 
 class Tasks(commands.Cog):
@@ -19,8 +20,12 @@ class Tasks(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
+    @discord.command(name="views", description="TESTING VIEWS")
+    async def views(self, ctx: ApplicationContext):
+        await ctx.send("Persistent?", view=PersistentView())
 
-    @discord.command(name="add_task_now", description="Publish a task now")
+
+    """@discord.command(name="add_task_now", description="Publish a task now")
     async def add_task_now(
             self, ctx: ApplicationContext,
             description: Option(str, description="Description of task", required=True),
@@ -121,4 +126,4 @@ class Tasks(commands.Cog):
         except Exception as e:
             print(e)
 
-        await ctx.respond(f"Task has been sent in the {tasks_channel.mention} channel!")
+        await ctx.respond(f"Task has been sent in the {tasks_channel.mention} channel!")"""
