@@ -8,6 +8,7 @@ from loggers import logger
 from db.database import session
 from datetime import datetime
 from views.persistent_view import PersistentView
+import dateutil.parser
 
 
 class Tasks(commands.Cog):
@@ -67,7 +68,7 @@ class Tasks(commands.Cog):
                 content = f"{tasks_role.mention}",
                 embed = discord.Embed(
                     title=f"**{title}**", 
-                    description=f"# {description}\n_By {ctx.author.mention}_", 
+                    description=f"**{description}**\n_By {ctx.author.mention}_", 
                     color=0x58adf2
                 ),
                 view=PersistentView()
@@ -76,3 +77,12 @@ class Tasks(commands.Cog):
             print(e)
         
         await ctx.respond(f"Task has been sent in the {tasks_channel.mention} channel!")
+
+    @discord.command(name="leaderboard", description="Creates a leaderboard for this month")
+    async def leaderboard(self, ctx: ApplicationContext):  
+        await ctx.response.defer(ephemeral=True)
+
+        datetimenow = datetime.now()
+        db_tasks = session.query(schemas.Tasks).all()
+
+        #! TODO
