@@ -76,9 +76,3 @@ class Tasks(commands.Cog):
             print(e)
         
         await ctx.respond(f"Task has been sent in the {tasks_channel.mention} channel!")
-
-    #! TODO this command is just for development purposes, delete it later
-    @discord.command(name="rmall", description="Removes all messages from a textChannel")
-    async def rmall(self, ctx: ApplicationContext):
-        for message in await ctx.channel.history(limit=500).flatten():
-            await message.delete()
