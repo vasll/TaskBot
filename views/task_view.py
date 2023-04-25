@@ -7,7 +7,7 @@ from db.database import session
 from loggers import logger
 
 
-class PersistentView(View):
+class TaskView(View):
     def __init__(self):
         super().__init__(timeout=None)
     

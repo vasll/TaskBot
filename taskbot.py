@@ -3,7 +3,8 @@ import discord
 from discord.ext.commands import Bot
 from cogs import tasks, setup
 from loggers import logger
-from views.persistent_view import PersistentView
+from views.task_view import TaskView
+from views.role_view import RoleView
 
 
 class TaskBot(Bot):
@@ -20,7 +21,8 @@ class TaskBot(Bot):
 
     async def on_ready(self):
         # Add views to bot
-        self.add_view(PersistentView())
+        self.add_view(TaskView())
+        self.add_view(RoleView())
 
         logger.info('Bot is ready!')
     

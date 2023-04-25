@@ -7,7 +7,7 @@ from discord.commands.context import ApplicationContext
 from loggers import logger
 from db.database import session
 from datetime import datetime
-from views.persistent_view import PersistentView
+from views.task_view import TaskView
 
 
 class Tasks(commands.Cog):
@@ -47,7 +47,7 @@ class Tasks(commands.Cog):
                     description=f"**{description}**\n_By {ctx.author.mention}_", 
                     color=0x58adf2
                 ),
-                view = PersistentView()
+                view = TaskView()
             )
         except Exception as e:
             logger.error(f"Exception while sending embed: {e}")

@@ -7,11 +7,11 @@ from taskbot_utils import gmt_timezones
 from loggers import logger
 from db.database import session
 import db.schemas as schemas
-
+from views.role_view import RoleView
 
 class Setup(commands.Cog):
     """ Cog that contains all the commands for setting up the bot """
-    def __init__(self, bot):
+    def __init__(self, bot: discord.Bot):
         self.bot = bot
 
     @discord.command(
@@ -83,3 +83,34 @@ class Setup(commands.Cog):
             embed.colour = Colour.red()
 
         await ctx.respond(embed=embed)
+
+
+    @discord.command(name="send_role_embed", description="Sends a role embed where users can self-assign the @tasks role")
+    @commands.has_permissions(manage_roles=True)
+    async def send_role_embed(
+        self, ctx: ApplicationContext, 
+        text_channel: Option(discord.TextChannel, description='Text channel where role embed will be sent', required=True),
+        embed_title: Option(str, default=':pencil: Get the role here', required=False),
+        embed_description: Option(
+            str, default='Click the button below if you want to get notified when new tasks are published', required=False
+        ),
+    ):
+        await ctx.response.defer(ephemeral=True)
+
+        try:
+            embed = discord.Embed(
+                title=embed_title, 
+                description=embed_description,
+                colour=Colour.blue()
+            )
+
+            text_channel: discord.TextChannel
+            await text_channel.send(
+                embed=embed,
+                view=RoleView()
+            )
+        except Exception as e:
+            logger.error(f"Error with sending embed: {e}")
+            return await ctx.respond("Error with sending embed")
+
+        await ctx.respond("Embed sent!")
