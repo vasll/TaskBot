@@ -1,14 +1,13 @@
 """ Handles the tasks Cog """
+from sqlalchemy import text
 import db.schemas as schemas, pytz, discord
 from discord.ext import commands
-from discord import Option
-from discord.interactions import Interaction
+from discord import Colour, Option
 from discord.commands.context import ApplicationContext
 from loggers import logger
 from db.database import session
 from datetime import datetime
 from views.persistent_view import PersistentView
-import dateutil.parser
 
 
 class Tasks(commands.Cog):
@@ -50,17 +49,20 @@ class Tasks(commands.Cog):
             session.commit()
         
         # Add task to database
-        db_task = schemas.Tasks(
-            title = title,
-            description = description,
-            inserted_at = datetime.now(tasks_timezone),
-            publish_at = datetime.now(tasks_timezone),
-            has_been_sent = True,
-            task_message_id = task_message.id,
-            id_creator = ctx.user.id
-        )
-        session.add(db_task)
-        session.commit()
+        try:
+            db_task = schemas.Tasks(
+                title = title,
+                description = description,
+                inserted_at = datetime.now(tasks_timezone),
+                publish_at = datetime.now(tasks_timezone),
+                has_been_sent = True,
+                task_message_id = task_message.id,
+                id_creator = ctx.user.id
+            )
+            session.add(db_task)
+            session.commit()
+        except Exception as e:
+            logger.error(f"Query exception while adding task: {e}")
 
         # Replace original message with task content
         try:
@@ -74,15 +76,40 @@ class Tasks(commands.Cog):
                 view=PersistentView()
             )
         except Exception as e:
-            print(e)
+            logger.error(f"Exception while editing embed: {e}")
         
         await ctx.respond(f"Task has been sent in the {tasks_channel.mention} channel!")
 
-    @discord.command(name="leaderboard", description="Creates a leaderboard for this month")
-    async def leaderboard(self, ctx: ApplicationContext):  
-        await ctx.response.defer(ephemeral=True)
+    @discord.command(name="leaderboard", description="Shows the current leaderboard of tasks for this server")
+    async def leaderboard(
+        self, ctx: ApplicationContext, 
+        hide_message: Option(bool, description="Hides the message from other users", default=True)
+    ):  
+        await ctx.response.defer(ephemeral=hide_message)
 
-        datetimenow = datetime.now()
-        db_tasks = session.query(schemas.Tasks).all()
+        try:
+            db_query = session.execute(text(
+                "SELECT users.id, COUNT(users_tasks.task_id) AS completed_task_count "\
+                "FROM users LEFT JOIN users_tasks ON users.id = users_tasks.user_id "\
+                "AND users_tasks.is_completed = 1 "\
+                "GROUP BY users.id ORDER BY COUNT(users_tasks.task_id) DESC"))
+            session.commit()
+        except Exception as e:
+            logger.error(f"Query exception: {e}")
 
-        #! TODO
+        # Create embed with leaderboard
+        embed = discord.Embed(title="TaskBot leaderboard", colour=Colour.gold())
+        leaderboard_user_count = 0
+        for entry in db_query:
+            for member in ctx.guild.members:
+                if entry[0] == member.id:
+                    task_count = entry[1]
+                    if leaderboard_user_count == 0:
+                        embed.add_field(name="First place", value=f":first_place: {member.mention} with {task_count} tasks completed", inline=False)
+                    elif leaderboard_user_count == 1:
+                        embed.add_field(name="Second place", value=f":second_place: {member.mention} with {task_count} tasks completed", inline=False)
+                    elif leaderboard_user_count == 2:
+                        embed.add_field(name="Third place", value=f":third_place: {member.mention} with {task_count} tasks completed", inline=False)
+                    leaderboard_user_count += 1
+        
+        await ctx.respond(embed=embed)
