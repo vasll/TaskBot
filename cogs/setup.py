@@ -1,7 +1,7 @@
 """ Handles the setup Cog """
 from discord.ext import commands
 import discord
-from discord import Colour, Option
+from discord import Colour, Option, Embed
 from discord.commands.context import ApplicationContext
 from taskbot_utils import gmt_timezones
 from loggers import logger
@@ -15,18 +15,20 @@ class Setup(commands.Cog):
         self.bot = bot
 
     @discord.command(
-        name="configure", description="Configures the bot by creating roles, setting the text channel and timezones"
+        name="configure", 
+        description="Configures the bot by creating roles, setting the text channel and timezones"
     )
     @commands.has_permissions(administrator=True)
     async def configure(
             self, ctx: ApplicationContext,
             tasks_channel: Option(discord.TextChannel, description='Text channel where tasks will be sent'),
-            timezone: Option(str, description="Preferred timezone for dates/time. Default is GMT+0",
-                             required=False, default='Europe/Rome', choices=gmt_timezones)
+            timezone: Option(
+                str, description="Preferred timezone for dates/time. Default is Europe/Rome",
+                required=False, default='Europe/Rome', choices=gmt_timezones
+            )
     ):
-        logger.debug(f'[guild {ctx.guild.id}] [configure()]')
         await ctx.response.defer()
-        embed = discord.Embed(title=":gear: Bot configuration", colour=Colour.green())
+        embed = Embed(title=":gear: Bot configuration", colour=Colour.green())
 
         # Get role names from server
         roles_names = [role.name for role in await ctx.guild.fetch_roles()]
@@ -81,36 +83,40 @@ class Setup(commands.Cog):
             logger.error(f"Exception while adding db.schemas.ServerConfigs entry of guild {ctx.guild.id}: {e}")
             embed.add_field(name="Configuration", value=":x: Couldn't save configuration", inline=False)
             embed.colour = Colour.red()
+        
+        # TODO if everything is successful send an introduction embed
 
         await ctx.respond(embed=embed)
 
 
-    @discord.command(name="send_role_embed", description="Sends a role embed where users can self-assign the @tasks role")
+    @discord.command(
+        name="send_role_embed", 
+        description="Sends a role embed where users can self-assign the @tasks role"
+    )
     @commands.has_permissions(administrator=True)
     async def send_role_embed(
         self, ctx: ApplicationContext, 
-        text_channel: Option(discord.TextChannel, description='Text channel where role embed will be sent', required=True),
+        text_channel: Option(
+            discord.TextChannel, description='Text channel where role embed will be sent', required=True
+        ),
         embed_title: Option(str, default=':pencil: Get the role here', required=False),
         embed_description: Option(
-            str, default='Click the button below if you want to get notified when new tasks are published', required=False
+            str, default='Click the button below if you want to get notified when new tasks are published', 
+            required=False
         ),
     ):
         await ctx.response.defer(ephemeral=True)
 
         try:
-            embed = discord.Embed(
-                title=embed_title, 
-                description=embed_description,
-                colour=Colour.blue()
-            )
-
-            text_channel: discord.TextChannel
             await text_channel.send(
-                embed=embed,
-                view=RoleView()
+                embed=Embed(
+                    title=embed_title, 
+                    description=embed_description,
+                    colour=Colour.blue()
+                ), view=RoleView()
             )
         except Exception as e:
             logger.error(f"Error with sending embed: {e}")
-            return await ctx.respond("Error with sending embed")
+            return await ctx.respond("Error: couldn't send embed")
 
         await ctx.respond("Embed sent!")

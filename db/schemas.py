@@ -1,6 +1,7 @@
 """ Contains the schemas for the TaskBot's sqlite database """
 from sqlalchemy import ForeignKey, Integer, String, Column, Boolean
 from db.database import Base, engine
+from loggers import logger
 
 
 class Users(Base):
@@ -84,4 +85,7 @@ class ServerConfigs(Base):
 
 
 def create_all_tables():
-    Base.metadata.create_all(bind=engine)
+    try:
+        Base.metadata.create_all(bind=engine)
+    except Exception as e:
+        logger.error(f"Exception while creating tables for db. Exception: {e}")

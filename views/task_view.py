@@ -18,33 +18,43 @@ class TaskView(View):
             db_utils.create_user_if_not_exists(session, interaction.user.id)
         except Exception as e:
             logger.error(f"Exception while creating user in db: {e}")
+            return await interaction.response.send_message("Error: couldn't add user to database")
 
         # Get task from db
         db_task = session.query(schemas.Tasks).filter_by(task_message_id=interaction.message.id).first()
         if db_task is None:
-            return await interaction.response.send_message('Error: Task not found', ephemeral=True)
+            return await interaction.response.send_message(
+                "Error: Didn't find any task linked to this button", ephemeral=True
+            )
         
-        # Check for users_tasks entry
+        # Get users_tasks entry
         db_users_tasks = session.query(schemas.Users_Tasks).filter_by(
             user_id=interaction.user.id, task_id=db_task.id
         ).first()
+
         # Add or update users_tasks entry
-        if db_users_tasks is None:
-            session.add(schemas.Users_Tasks(user_id=interaction.user.id, task_id=db_task.id, is_completed=True))
-            session.commit()
-        else:
-            db_users_tasks.is_completed = True
-            session.commit()
+        try:
+            if db_users_tasks is None:
+                session.add(schemas.Users_Tasks(user_id=interaction.user.id, task_id=db_task.id, is_completed=True))
+                session.commit()
+            else:
+                db_users_tasks.is_completed = True
+                session.commit()
+        except Exception as e:
+            logger.error(f"Exception while adding/updating users_task entry. Exception: {e}")
+            return await interaction.response.send_message(
+                "Error while updating users_task entry in database.",
+                ephemeral=True
+            )
         
+        # Update the view's buttons with the new completed/not completed count
         completed_count = session.query(schemas.Users_Tasks).filter_by(
-            task_id = db_task.id,
-            is_completed = True
+            task_id = db_task.id, is_completed = True
         ).count()
         button.label = f"{completed_count} Completed"
         
         not_completed_count = session.query(schemas.Users_Tasks).filter_by(
-            task_id = db_task.id,
-            is_completed = False
+            task_id = db_task.id, is_completed = False
         ).count()
         self.get_item('task_not_completed').label = f"{not_completed_count} Not completed"
         
@@ -54,36 +64,48 @@ class TaskView(View):
     @ui.button(label='Not completed', style=ButtonStyle.red, custom_id='task_not_completed')
     async def not_completed(self, button: Button, interaction: Interaction):
         # Create the user if it doesn't exist
-        db_utils.create_user_if_not_exists(session, interaction.user.id)
+        try:
+            db_utils.create_user_if_not_exists(session, interaction.user.id)
+        except Exception as e:
+            logger.error(f"Exception while creating user in db: {e}")
+            return await interaction.response.send_message("Error: couldn't add user to database")
 
         # Get task from db
-        db_task = session.query(schemas.Tasks).filter_by(
-            task_message_id=interaction.message.id
-        ).first()
+        db_task = session.query(schemas.Tasks).filter_by(task_message_id=interaction.message.id).first()
         if db_task is None:
-            return await interaction.response.send_message('Error: Task not found', ephemeral=True)
+            return await interaction.response.send_message(
+                "Error: Didn't find any task linked to this button", ephemeral=True
+            )
         
-        # Check for users_tasks entry
+        # Get users_tasks entry
         db_users_tasks = session.query(schemas.Users_Tasks).filter_by(
             user_id=interaction.user.id, task_id=db_task.id
         ).first()
+
         # Add or update users_tasks entry
-        if db_users_tasks is None:
-            session.add(schemas.Users_Tasks(user_id=interaction.user.id, task_id=db_task.id, is_completed=False))
-            session.commit()
-        else:
-            db_users_tasks.is_completed = False
-            session.commit()
+        try:
+            if db_users_tasks is None:
+                session.add(schemas.Users_Tasks(user_id=interaction.user.id, task_id=db_task.id, is_completed=False))
+                session.commit()
+            else:
+                db_users_tasks.is_completed = False
+                session.commit()
+        except Exception as e:
+            logger.error(f"Exception while adding/updating users_task entry. Exception: {e}")
+            return await interaction.response.send_message(
+                "Error while updating users_task entry in database.",
+                ephemeral=True
+            )
         
+        # Update the view's buttons with the new completed/not completed count
         not_completed_count = session.query(schemas.Users_Tasks).filter_by(
-            task_id = db_task.id,
-            is_completed = False
+            task_id = db_task.id, is_completed = False
         ).count()
         button.label = f"{not_completed_count} Not completed"
         
         completed_count = session.query(schemas.Users_Tasks).filter_by(
-            task_id = db_task.id,
-            is_completed = True
+            task_id = db_task.id, is_completed = True
         ).count()
         self.get_item('task_completed').label = f"{completed_count} Completed"
+        
         await interaction.response.edit_message(view=self)

@@ -1,4 +1,4 @@
-""" Handles the tasks Cog """
+""" The tasks cog contains all the commands related to tasks """
 from sqlalchemy import text
 import db.schemas as schemas, pytz, discord
 from discord.ext import commands
@@ -8,11 +8,11 @@ from loggers import logger
 from db.database import session
 from datetime import datetime
 from views.task_view import TaskView
+from db import db_utils
 
 
 class Tasks(commands.Cog):
     """ Cog that contains all the commands related to tasks """
-
     def __init__(self, bot):
         self.bot = bot
 
@@ -37,10 +37,12 @@ class Tasks(commands.Cog):
         tasks_channel = ctx.guild.get_channel(guild_config.tasks_channel_id)
         tasks_timezone = pytz.timezone(guild_config.timezone)
 
-        # Check if user is already in the db
-        if session.query(schemas.Users).filter_by(id=ctx.user.id).first() is None:
-            session.add(schemas.Users(ctx.user.id))
-            session.commit()
+        # Create the user if it doesn't exist
+        try:
+            db_utils.create_user_if_not_exists(session, ctx.user.id)
+        except Exception as e:
+            logger.error(f"Exception while creating user in db: {e}")
+            return await ctx.respond("Error: couldn't add user to database")
         
         # Send embed with task
         try:
@@ -55,7 +57,7 @@ class Tasks(commands.Cog):
             )
         except Exception as e:
             logger.error(f"Exception while sending embed: {e}")
-            return await ctx.respond("Error while making the task embed")
+            return await ctx.respond("Error: couldn't create the task's embed")
         
         # Add task to database
         try:
@@ -72,7 +74,7 @@ class Tasks(commands.Cog):
             session.commit()
         except Exception as e:
             logger.error(f"Query exception while adding task: {e}")
-            return await ctx.respond("Error while adding task to database")
+            return await ctx.respond("Error: couldn't add task to database")
         
         await ctx.respond(f"Task has been sent in the {tasks_channel.mention} channel!")
 
@@ -92,6 +94,7 @@ class Tasks(commands.Cog):
             session.commit()
         except Exception as e:
             logger.error(f"Query exception: {e}")
+            return await ctx.respond("Error: couldn't query database successfully")
 
         # Create embed with leaderboard
         embed = discord.Embed(title="TaskBot leaderboard", colour=Colour.gold())

@@ -1,3 +1,4 @@
+""" Creates a simple sqlalchemy connection to a mysql database using sessions """
 from sqlalchemy import create_engine
 from sqlalchemy.orm import declarative_base
 from sqlalchemy.orm import sessionmaker

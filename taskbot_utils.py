@@ -5,18 +5,22 @@ import requests
 from logging import Formatter
 import json
 
-# VARIABLES
-gmt_timezones = ['Etc/GMT+0', 'Etc/GMT+1', 'Etc/GMT+2', 'Etc/GMT+3', 'Etc/GMT+4', 'Etc/GMT+5', 'Etc/GMT+6', 'Etc/GMT+7',
-                 'Etc/GMT+8', 'Etc/GMT+9', 'Etc/GMT+10', 'Etc/GMT+11', 'Etc/GMT+12', 'Etc/GMT-1', 'Etc/GMT-2',
-                 'Etc/GMT-3', 'Etc/GMT-4', 'Etc/GMT-5', 'Etc/GMT-6', 'Etc/GMT-7', 'Etc/GMT-8', 'Etc/GMT-9',
-                 'Etc/GMT-10', 'Etc/GMT-11']
+
+# Utility variables
+gmt_timezones = [
+    'Etc/GMT+0', 'Etc/GMT+1', 'Etc/GMT+2', 'Etc/GMT+3', 'Etc/GMT+4', 'Etc/GMT+5', 'Etc/GMT+6', 'Etc/GMT+7',
+    'Etc/GMT+8', 'Etc/GMT+9', 'Etc/GMT+10', 'Etc/GMT+11', 'Etc/GMT+12', 'Etc/GMT-1', 'Etc/GMT-2',
+    'Etc/GMT-3', 'Etc/GMT-4', 'Etc/GMT-5', 'Etc/GMT-6', 'Etc/GMT-7', 'Etc/GMT-8', 'Etc/GMT-9',
+    'Etc/GMT-10', 'Etc/GMT-11'
+]
 
 
-# FUNCTIONS
-def make_logger(name: str, file: str, level=logging.DEBUG, to_file=True, to_stdout=True, create_dirs=True,
-                formatter=Formatter(
-                    f'[%(asctime)s] [%(name)s] [%(levelname)s] [%(module)s] %(message)s')
-                ) -> logging.Logger:
+# Utility functions
+def make_logger(
+        name: str, file: str, level=logging.DEBUG, to_file=True, to_stdout=True, create_dirs=True,
+        formatter=Formatter(
+            f'[%(asctime)s] [%(name)s] [%(levelname)s] [%(module)s] %(message)s')
+        ) -> logging.Logger:
     """ Creates and returns a new logger """
     logger = logging.getLogger(name)
     logger.setLevel(level)
@@ -41,8 +45,5 @@ def make_logger(name: str, file: str, level=logging.DEBUG, to_file=True, to_stdo
 
 def get_motivational_quote():
     """ Returns a motivational quote from api.quotable.io"""
-    try:
-        response = requests.get("https://api.quotable.io/quotes/random?tags=motivational")
-        return json.loads(response.text)[0]
-    except Exception as _:
-        return None
+    response = requests.get("https://api.quotable.io/quotes/random?tags=motivational")
+    return json.loads(response.text)[0]
