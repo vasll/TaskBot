@@ -10,8 +10,6 @@
   </p>
 </div>
 
-
-
 # Bot usage
 ### `/configure`
 You can configure the bot by setting the text channel where all the tasks will be sent.
@@ -36,3 +34,11 @@ You can add tasks by giving them a title and description, by default tasks are s
 Each server has its own leaderboards based on the number of completed tasks
 
 ![leaderboard](https://user-images.githubusercontent.com/67590845/234369554-ce644676-b8a1-4301-a013-df48d8ae8140.png)
+
+# Self-hosting
+If you'd like to host this bot on your servers you can create a config.py file in the root directory and add the token in a dict
+```python
+bot = {
+  'token': 'INSERT YOUR TOKEN HERE'
+}
+```
