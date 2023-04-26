@@ -24,6 +24,10 @@ class Tasks(commands.Cog):
     ):  
         await ctx.response.defer(ephemeral=True)
 
+        # Check if user has the @tasks-manager role
+        if not 'tasks-manager' in [r.name for r in ctx.user.roles]:
+            return await ctx.respond(f"You need the @tasks-manager role to add tasks!")
+
         # Load config data of guild
         guild_config = session.query(schemas.ServerConfigs).filter_by(guild_id=ctx.guild_id).first()
         if guild_config is None:
@@ -92,7 +96,8 @@ class Tasks(commands.Cog):
         # Create embed with leaderboard
         embed = discord.Embed(title="TaskBot leaderboard", colour=Colour.gold())
         leaderboard_user_count = 0
-        for entry in db_query:
+        # Bad algorithm    
+        for entry in db_query: 
             for member in ctx.guild.members:
                 if entry[0] == member.id:
                     task_count = entry[1]
@@ -103,5 +108,5 @@ class Tasks(commands.Cog):
                     elif leaderboard_user_count == 2:
                         embed.add_field(name="Third place", value=f":third_place: {member.mention} with {task_count} tasks completed", inline=False)
                     leaderboard_user_count += 1
-        
+
         await ctx.respond(embed=embed)

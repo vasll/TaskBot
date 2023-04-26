@@ -17,7 +17,7 @@ class Setup(commands.Cog):
     @discord.command(
         name="configure", description="Configures the bot by creating roles, setting the text channel and timezones"
     )
-    @commands.has_permissions(manage_roles=True)
+    @commands.has_permissions(administrator=True)
     async def configure(
             self, ctx: ApplicationContext,
             tasks_channel: Option(discord.TextChannel, description='Text channel where tasks will be sent'),
@@ -86,7 +86,7 @@ class Setup(commands.Cog):
 
 
     @discord.command(name="send_role_embed", description="Sends a role embed where users can self-assign the @tasks role")
-    @commands.has_permissions(manage_roles=True)
+    @commands.has_permissions(administrator=True)
     async def send_role_embed(
         self, ctx: ApplicationContext, 
         text_channel: Option(discord.TextChannel, description='Text channel where role embed will be sent', required=True),
