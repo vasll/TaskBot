@@ -23,12 +23,12 @@ class Setup(commands.Cog):
     async def configure(
             self, ctx: ApplicationContext,
             tasks_channel: Option(discord.TextChannel, description='Text channel where tasks will be sent'),
-            timezone: Option(
-                str, description="Preferred timezone for dates/time. Default is 'Etc/GMT+0'",
-                required=False, choices=gmt_timezones
-            ),
             default_task_title: Option(
                 str, description="The default task title for new tasks", required=False
+            ),
+            timezone: Option(
+                str, description="Preferred timezone for dates/time. Default is 'Etc/GMT+2'",
+                required=False, choices=gmt_timezones
             )
     ):
         await ctx.response.defer()
@@ -68,9 +68,15 @@ class Setup(commands.Cog):
         try:
             # If Guild exists in db update it. Otherwise create the new entry
             db_guild = await queries.get_guild(ctx.guild.id)
-            if db_guild is not None:
-                await queries.update_guild(ctx.guild.id, tasks_channel.id, timezone, default_task_title)
-            else:
+
+            if db_guild is not None:    # Update guild
+                if timezone is None:
+                    timezone = db_guild.timezone
+                if default_task_title is None:
+                    default_task_title = db_guild.default_task_title
+
+                await queries.update_guild(db_guild.id, tasks_channel.id, timezone, default_task_title)
+            else:   # Add new guild
                 await queries.add_guild(Guild(
                     id=ctx.guild.id, 
                     tasks_channel_id=tasks_channel.id, 

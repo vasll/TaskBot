@@ -33,7 +33,7 @@ class Tasks(commands.Cog):
         db_guild = await queries.get_guild(ctx.guild.id)
         if db_guild is None:
             return await ctx.respond("Bot was not configured\nRun the `/configure` command first!")
-        
+        print(f"DB GUILD: {db_guild}")
         try:
             tasks_role = get(ctx.guild.roles, name="tasks")  # Fetch the @tasks role from the guild
             tasks_channel = ctx.guild.get_channel(db_guild.tasks_channel_id)

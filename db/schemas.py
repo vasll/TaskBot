@@ -34,7 +34,7 @@ class Guild(Base):
         self.default_task_title = default_task_title
 
     def __repr__(self):
-        return f"{self.id} {self.guild_id} {self.tasks_channel_id} {self.timezone} {self.default_task_title}"
+        return f"{self.id} {self.tasks_channel_id} {self.timezone} {self.default_task_title}"
 
 
 class Task(Base):
