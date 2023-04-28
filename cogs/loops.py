@@ -11,9 +11,9 @@ class Loops(commands.Cog):
         self.bot = bot
         self.presence_updater.start()
     
-    @tasks.loop(minutes=15.0)
+    @tasks.loop(minutes=5.0)
     async def presence_updater(self):
-        """ Every 15 minutes updates the bot's presence with the total task count from the db """
+        """ Updates the bot's presence with the total task count from the db """
         try:
             task_count = await queries.get_task_count()
             if task_count is None:

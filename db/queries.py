@@ -35,7 +35,7 @@ async def get_guild_leaderboard(guild_id: int) -> CursorResult:
             "JOIN users_tasks ut ON u.id = ut.user_id "\
             "JOIN tasks t ON ut.task_id = t.id "\
             "JOIN guilds g ON t.id_guild = g.id "\
-            f"WHERE g.id = {guild_id} "\
+            f"WHERE g.id = {guild_id} AND ut.is_completed = 1 "\
             "GROUP BY u.id "\
             "ORDER BY completed_tasks DESC "\
         ))
