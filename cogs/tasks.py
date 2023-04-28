@@ -1,14 +1,15 @@
-""" The tasks cog contains all the commands related to tasks """
+""" Contains all the commands related to tasks """
+import pytz, discord
 from sqlalchemy import text
-import db.schemas as schemas, pytz, discord
 from discord.ext import commands
 from discord import Colour, Option
+from discord.utils import get
 from discord.commands.context import ApplicationContext
 from loggers import logger
-from db.database import session
 from datetime import datetime
 from views.task_view import TaskView
-from db import db_utils
+from db import queries
+from db.schemas import Task
 
 
 class Tasks(commands.Cog):
@@ -20,7 +21,7 @@ class Tasks(commands.Cog):
     async def add_task(
         self, ctx: ApplicationContext, 
         description: Option(str, description="Description of task", required=True),
-        title: Option(str, description="Title of task", required=False, default="Task of the day")
+        title: Option(str, description="Title of task", required=False)
     ):  
         await ctx.response.defer(ephemeral=True)
 
@@ -29,87 +30,64 @@ class Tasks(commands.Cog):
             return await ctx.respond(f"You need the @tasks-manager role to add tasks!")
 
         # Load config data of guild
-        guild_config = session.query(schemas.GuildConfig).filter_by(guild_id=ctx.guild_id).first()
-        if guild_config is None:
+        db_guild = await queries.get_guild(ctx.guild.id)
+        if db_guild is None:
             return await ctx.respond("Bot was not configured\nRun the `/configure` command first!")
         
-        tasks_role = ctx.guild.get_role(guild_config.tasks_role_id)
-        tasks_channel = ctx.guild.get_channel(guild_config.tasks_channel_id)
-        tasks_timezone = pytz.timezone(guild_config.timezone)
-
+        try:
+            tasks_role = get(ctx.guild.roles, name="tasks")  # Fetch the @tasks role from the guild
+            tasks_channel = ctx.guild.get_channel(db_guild.tasks_channel_id)
+            tasks_timezone = pytz.timezone(db_guild.timezone)
+            default_task_title = db_guild.default_task_title
+        except Exception as e:
+            logger.info(f"Exception while fetching guild config of guild {ctx.guild.id}: {e}")
+            return await ctx.respond("Error: couldn't find @tasks role or the #tasks channel was not configured")
+        
         # Create the user if it doesn't exist
         try:
-            db_utils.create_user_if_not_exists(session, ctx.user.id)
+            await queries.add_user(ctx.user.id)
         except Exception as e:
             logger.error(f"Exception while creating user in db: {e}")
             return await ctx.respond("Error: couldn't add user to database")
         
+        # If there was no task title given by the user, use the default task title from the db config
+        if title is None:
+            title = default_task_title
+
         # Send embed with task
         try:
             task_message = await tasks_channel.send(
-                content = f"{tasks_role.mention}",
+                content = f"{tasks_role.mention}", 
                 embed = discord.Embed(
-                    title=f"**{title}**", 
-                    description=f"**{description}**\n_By {ctx.author.mention}_", 
-                    color=0x58adf2
+                    title=f"**{title}**", color=0x58adf2,
+                    description=f"**{description}**\n_By {ctx.author.mention}_"
                 ),
                 view = TaskView()
             )
         except Exception as e:
             logger.error(f"Exception while sending embed: {e}")
-            return await ctx.respond("Error: couldn't create the task's embed")
+            return await ctx.respond("Error: couldn't create and send the task's embed")
         
         # Add task to database
         try:
-            db_task = schemas.Task(
-                title = title,
-                description = description,
-                inserted_at = datetime.now(tasks_timezone),
-                publish_at = datetime.now(tasks_timezone),
-                has_been_sent = True,
-                task_message_id = task_message.id,
-                id_creator = ctx.user.id
-            )
-            session.add(db_task)
-            session.commit()
+            await queries.add_task(Task(
+                title, description, datetime.now(tasks_timezone), 
+                datetime.now(tasks_timezone), True, task_message.id, ctx.user.id, ctx.guild.id
+            ))
         except Exception as e:
-            logger.error(f"Query exception while adding task: {e}")
+            logger.error(f"Exception while adding task to database: {e}")
             return await ctx.respond("Error: couldn't add task to database")
         
         await ctx.respond(f"Task has been sent in the {tasks_channel.mention} channel!")
 
+
     @discord.command(name="leaderboard", description="Shows the current leaderboard of tasks for this server")
-    async def leaderboard(
-        self, ctx: ApplicationContext, 
-        hide_message: Option(bool, description="Hides the message from other users", default=True)
-    ):  
-        await ctx.response.defer(ephemeral=hide_message)
+    async def leaderboard(self, ctx: ApplicationContext):  
+        await ctx.response.defer(ephemeral=True)
+        
+        leaderboard_entries = await queries.get_guild_leaderboard(ctx.guild.id)
+        for entry in leaderboard_entries:
+            entry_user_id = entry[0]    # Entry user id
+            entry_task_count = entry[1] # The number of completed tasks of said user
 
-        try:
-            db_query = session.execute(text(
-                "SELECT users.id, COUNT(users_tasks.task_id) AS completed_task_count "\
-                "FROM users LEFT JOIN users_tasks ON users.id = users_tasks.user_id "\
-                "AND users_tasks.is_completed = 1 "\
-                "GROUP BY users.id ORDER BY COUNT(users_tasks.task_id) DESC"))
-            session.commit()
-        except Exception as e:
-            logger.error(f"Query exception: {e}")
-            return await ctx.respond("Error: couldn't query database successfully")
-
-        # Create embed with leaderboard
-        embed = discord.Embed(title="TaskBot leaderboard", colour=Colour.gold())
-        leaderboard_user_count = 0
-        # Bad algorithm    
-        for entry in db_query: 
-            for member in ctx.guild.members:
-                if entry[0] == member.id:
-                    task_count = entry[1]
-                    if leaderboard_user_count == 0:
-                        embed.add_field(name="First place", value=f":first_place: {member.mention} with {task_count} tasks completed", inline=False)
-                    elif leaderboard_user_count == 1:
-                        embed.add_field(name="Second place", value=f":second_place: {member.mention} with {task_count} tasks completed", inline=False)
-                    elif leaderboard_user_count == 2:
-                        embed.add_field(name="Third place", value=f":third_place: {member.mention} with {task_count} tasks completed", inline=False)
-                    leaderboard_user_count += 1
-
-        await ctx.respond(embed=embed)
+            # TODO

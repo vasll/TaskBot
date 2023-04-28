@@ -1,13 +1,14 @@
-""" Handles the setup Cog """
-from discord.ext import commands
+""" Contains all the commands related to setting up the bot in a server """
 import discord
+from discord.ext import commands
 from discord import Colour, Option, Embed
 from discord.commands.context import ApplicationContext
 from taskbot_utils import gmt_timezones
 from loggers import logger
-from db.database import session
-import db.schemas as schemas
+from db.schemas import Guild
 from views.role_view import RoleView
+from db import queries
+
 
 class Setup(commands.Cog):
     """ Cog that contains all the commands for setting up the bot """
@@ -15,16 +16,19 @@ class Setup(commands.Cog):
         self.bot = bot
 
     @discord.command(
-        name="configure", 
-        description="Configures the bot by creating roles, setting the text channel and timezones"
+        name="configure",
+        description="Creates or updates the bot's configuration for your server"
     )
     @commands.has_permissions(administrator=True)
     async def configure(
             self, ctx: ApplicationContext,
             tasks_channel: Option(discord.TextChannel, description='Text channel where tasks will be sent'),
             timezone: Option(
-                str, description="Preferred timezone for dates/time. Default is Europe/Rome",
-                required=False, default='Europe/Rome', choices=gmt_timezones
+                str, description="Preferred timezone for dates/time. Default is 'Etc/GMT+0'",
+                required=False, choices=gmt_timezones
+            ),
+            default_task_title: Option(
+                str, description="The default task title for new tasks", required=False
             )
     ):
         await ctx.response.defer()
@@ -60,32 +64,25 @@ class Setup(commands.Cog):
         # timezone
         embed.add_field(name="timezone", value=f":white_check_mark: Timezone set as {timezone}", inline=False)
 
-        # Add config to db
+        # Add guild to database
         try:
-            # If GuildConfig exists update it. Otherwise create the new entry
-            db_guild_config = session.query(schemas.GuildConfig).filter_by(guild_id=ctx.guild.id).first()
-            if db_guild_config is not None:
-                db_guild_config.tasks_channel_id = tasks_channel.id
-                db_guild_config.tasks_role_id = discord.utils.get(ctx.guild.roles, name="tasks").id
-                db_guild_config.timezone = timezone
-                session.commit()
+            # If Guild exists in db update it. Otherwise create the new entry
+            db_guild = await queries.get_guild(ctx.guild.id)
+            if db_guild is not None:
+                await queries.update_guild(ctx.guild.id, tasks_channel.id, timezone, default_task_title)
             else:
-                server_config = schemas.GuildConfig(
-                    guild_id = ctx.guild.id, 
-                    tasks_channel_id = tasks_channel.id, 
-                    tasks_role_id = discord.utils.get(ctx.guild.roles, name="tasks").id, 
-                    timezone = timezone
-                )
-                session.add(server_config)
-                session.commit()
+                await queries.add_guild(Guild(
+                    id=ctx.guild.id, 
+                    tasks_channel_id=tasks_channel.id, 
+                    timezone=timezone,
+                    default_task_title=default_task_title
+                ))
             embed.add_field(name="Configuration", value=":white_check_mark: Configuration saved", inline=False)
         except Exception as e:
-            logger.error(f"Exception while adding db.schemas.ServerConfigs entry of guild {ctx.guild.id}: {e}")
-            embed.add_field(name="Configuration", value=":x: Couldn't save configuration", inline=False)
+            logger.error(f"Exception while adding schemas.Guild to db of guild {ctx.guild.id}. Exception: {e}")
+            embed.add_field(name="Configuration", value=":x: Configuration save failed", inline=False)
             embed.colour = Colour.red()
         
-        # TODO if everything is successful send an introduction embed
-
         await ctx.respond(embed=embed)
 
 

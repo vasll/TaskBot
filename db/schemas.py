@@ -1,7 +1,6 @@
 """ Contains the schemas for the TaskBot's sqlite database """
 from sqlalchemy import ForeignKey, Integer, String, Column, Boolean
-from db.database import Base, engine
-from loggers import logger
+from db.database import Base
 
 
 class User(Base):
@@ -16,6 +15,28 @@ class User(Base):
         return f"User -> id:{self.id}"
 
 
+class Guild(Base):
+    """ Contains a discord guild id and other configuration fields that are needed for TaskBot """
+    __tablename__ = 'guilds'
+
+    id = Column("id", Integer, primary_key=True, autoincrement=False)
+    tasks_channel_id = Column("tasks_channel_id", Integer)
+    timezone = Column("timezone", String, default='Etc/GMT+2')  # TODO field for scheduled tasks (not yet implemented)
+    default_task_title = Column("default_task_title", String)
+
+    def __init__(
+            self, tasks_channel_id: int, timezone: str = None, 
+            default_task_title: str = "New task", id: int = None
+        ):
+        self.id = id
+        self.tasks_channel_id = tasks_channel_id
+        self.timezone = timezone
+        self.default_task_title = default_task_title
+
+    def __repr__(self):
+        return f"{self.id} {self.guild_id} {self.tasks_channel_id} {self.timezone} {self.default_task_title}"
+
+
 class Task(Base):
     """ Represents a task """
     __tablename__ = 'tasks'
@@ -24,14 +45,15 @@ class Task(Base):
     title = Column("title", String)
     description = Column("description", String)
     inserted_at = Column("inserted_at", String)
-    publish_at = Column("publish_at", String)
-    has_been_sent = Column("has_been_sent", Boolean)
+    publish_at = Column("publish_at", String)         # TODO field for scheduled tasks (not yet implemented)
+    has_been_sent = Column("has_been_sent", Boolean)  # TODO field is for scheduled tasks (not yet implemented)
     task_message_id = Column("task_message_id", Integer, unique=True)
     id_creator = Column("id_creator", ForeignKey("users.id"))
+    id_guild = Column("id_guild", ForeignKey("guilds.id"))
 
     def __init__(
             self, title, description, inserted_at, publish_at, has_been_sent, 
-            task_message_id, id_creator, id = None,
+            task_message_id, id_creator, id_guild, id = None,
         ) -> None:
         self.id = id
         self.title = title
@@ -41,12 +63,13 @@ class Task(Base):
         self.has_been_sent = has_been_sent
         self.task_message_id = task_message_id
         self.id_creator = id_creator
+        self.id_guild = id_guild
 
     def __repr__(self):
         return f"Task -> id:{self.id} title:{self.title} description:{self.description} "+\
                f"inserted_at:{self.inserted_at} publish_at:{self.publish_at} "+\
                f"has_been_sent:{self.has_been_sent} task_message_id: {self.task_message_id} "+\
-               f"id_creator{self.id_creator}"
+               f"id_creator: {self.id_creator} id_guild: {self.id_guild}"
 
 
 class UsersTasks(Base):
@@ -61,31 +84,3 @@ class UsersTasks(Base):
         self.user_id = user_id
         self.task_id = task_id
         self.is_completed = is_completed
-
-
-class GuildConfig(Base):
-    """ Keeps the configuration for a discord guild """
-    __tablename__ = 'server_configs'
-
-    id = Column("id", Integer, primary_key=True, autoincrement=True)
-    guild_id = Column("guild_id", Integer, unique=True)
-    tasks_channel_id = Column("tasks_channel_id", Integer)
-    tasks_role_id = Column("tasks_role_id", Integer)
-    timezone = Column("timezone", String, default='Europe/Rome')
-
-    def __init__(self, guild_id: int, tasks_channel_id: int, tasks_role_id: int, id: int = None, timezone: str = None):
-        self.id = id
-        self.guild_id = guild_id
-        self.tasks_role_id = tasks_role_id
-        self.tasks_channel_id = tasks_channel_id
-        self.timezone = timezone
-
-    def __repr__(self):
-        return f"{self.id} {self.guild_id} {self.tasks_channel_id} {self.timezone}"
-
-
-def create_all_tables():
-    try:
-        Base.metadata.create_all(bind=engine)
-    except Exception as e:
-        logger.error(f"Exception while creating tables for db. Exception: {e}")
