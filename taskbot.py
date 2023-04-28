@@ -15,14 +15,17 @@ class TaskBot(Bot):
     def __init__(self):
         # Initialize bot
         super().__init__(intents=self.intents)
+        self.persistent_views_added = False
         # Add cogs to bot
         self.add_cog(tasks.Tasks(self))
         self.add_cog(setup.Setup(self))
     
 
     async def on_ready(self):
-        # Add views to bot (to make them persistent)
-        self.add_view(TaskView())
-        self.add_view(RoleView())
+        # Add views to bot to make them persistent
+        if not self.persistent_views_added:
+            self.add_view(TaskView())
+            self.add_view(RoleView())
+            self.persistent_views_added = True
         logger.info('Bot is ready!')
     
