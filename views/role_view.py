@@ -3,6 +3,7 @@ from discord.ui import Button, View
 from discord import ButtonStyle, Interaction, ui
 from discord.utils import get
 from db import queries
+from db.schemas import User
 from loggers import logger
 
 
@@ -15,7 +16,7 @@ class RoleView(View):
     async def add_roles(self, button: Button, interaction: Interaction):
         # Create the user if it doesn't exist
         try:
-            await queries.add_user(interaction.user.id)
+            await queries.add_user(User(id=interaction.user.id))
         except Exception as e:
             logger.error(f"Exception while adding user to db: {e}")
             return await interaction.response.send_message("Error: couldn't add user to database", ephemeral=True)

@@ -2,7 +2,7 @@ from sqlalchemy import update
 from discord.ui import Button, View
 from discord import ButtonStyle, Interaction, ui
 from db import queries
-from db.schemas import UsersTasks
+from db.schemas import UsersTasks, User
 from loggers import logger
 
 
@@ -14,7 +14,7 @@ class TaskView(View):
     async def green(self, button: Button, interaction: Interaction):
         # Create the user if it doesn't exist
         try:
-            await queries.add_user(interaction.user.id)
+            await queries.add_user(User(id=interaction.user.id))
         except Exception as e:
             logger.error(f"Exception while creating user in db: {e}")
             return await interaction.response.send_message("Error: couldn't add user to database")
@@ -57,7 +57,7 @@ class TaskView(View):
     async def not_completed(self, button: Button, interaction: Interaction):
         # Create the user if it doesn't exist
         try:
-            await queries.add_user(interaction.user.id)
+            await queries.add_user(User(id=interaction.user.id))
         except Exception as e:
             logger.error(f"Exception while creating user in db: {e}")
             return await interaction.response.send_message("Error: couldn't add user to database")

@@ -9,7 +9,7 @@ from loggers import logger
 from datetime import datetime
 from views.task_view import TaskView
 from db import queries
-from db.schemas import Task
+from db.schemas import Task, User
 
 
 class Tasks(commands.Cog):
@@ -45,7 +45,7 @@ class Tasks(commands.Cog):
         
         # Create the user if it doesn't exist
         try:
-            await queries.add_user(ctx.user.id)
+            await queries.add_user(User(id=ctx.user.id))
         except Exception as e:
             logger.error(f"Exception while creating user in db: {e}")
             return await ctx.respond("Error: couldn't add user to database")

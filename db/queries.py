@@ -4,19 +4,17 @@ from sqlalchemy.ext.asyncio import AsyncEngine
 from sqlalchemy.engine.cursor import CursorResult
 from db.database import async_session, Base
 from db.schemas import Guild, User, Task, UsersTasks
-from loggers import logger
 
-# TODO more/better comments
 
-async def add_user(user_id: int) -> None:
+async def add_user(user: User) -> None:
     """ Adds a new user to the db if it doesn't exist already"""
     # TODO use User object instead of user_id param
     async with async_session() as session:
-        result = await session.execute(select(User).filter_by(id = user_id))
-        user = result.scalars().first()
+        result = await session.execute(select(User).filter_by(id = user.id))
+        db_user = result.scalars().first()
 
-        if user is None:
-            session.add(User(id=user_id))
+        if db_user is None:
+            session.add(user)
             await session.commit()
 
 async def add_task(task: Task) -> None:
@@ -44,6 +42,7 @@ async def get_guild_leaderboard(guild_id: int) -> CursorResult:
         return result
 
 async def get_guild(guild_id: int) -> Guild | None:
+    """ Gets a Guild ORM from the db or None if it doesn't exist """
     async with async_session() as session:
         result = await session.execute(
             select(Guild).filter_by(id=guild_id).limit(1)
@@ -51,11 +50,13 @@ async def get_guild(guild_id: int) -> Guild | None:
         return result.scalars().first()
 
 async def add_guild(guild_config: Guild) -> None:
+    """ Adds a Guild entry in the db """
     async with async_session() as session:
         session.add(guild_config)
         await session.commit()
 
 async def update_guild(guild_id: int, tasks_channel_id, timezone, default_task_title) -> None:
+    """ Updates a Guild entry in the db """
     async with async_session() as session:
         db_guild = await get_guild(guild_id)
         db_guild.tasks_channel_id = tasks_channel_id
@@ -64,6 +65,7 @@ async def update_guild(guild_id: int, tasks_channel_id, timezone, default_task_t
         await session.commit()
 
 async def get_task(task_message_id: int) -> Task | None:
+    """ Gets a task from the db """
     async with async_session() as session:
         result = await session.execute(
             select(Task).filter_by(task_message_id=task_message_id).limit(1)
@@ -71,6 +73,7 @@ async def get_task(task_message_id: int) -> Task | None:
         return result.scalars().first()
 
 async def get_users_tasks(user_id: int, task_id: int) -> UsersTasks | None:
+    """ Gets a UsersTasks ORM from the db """
     async with async_session() as session:
         result = await session.execute(
             select(UsersTasks).filter_by(user_id=user_id, task_id=task_id).limit(1)
@@ -78,11 +81,13 @@ async def get_users_tasks(user_id: int, task_id: int) -> UsersTasks | None:
         return result.scalars().first()
 
 async def add_users_tasks(users_tasks: UsersTasks) -> None:
+    """ Adds a UsersTasks entry in the db """
     async with async_session() as session:
         session.add(users_tasks)
         await session.commit()
 
 async def update_users_tasks(users_tasks: UsersTasks, is_completed: bool) -> None:
+    """ Updates a UsersTasks entry from the db """
     async with async_session() as session:
         # Get persistent object from db
         result = await session.execute(
@@ -96,6 +101,7 @@ async def update_users_tasks(users_tasks: UsersTasks, is_completed: bool) -> Non
         await session.commit()
 
 async def get_guild_task_count(guild_id: int) -> int | None:
+    """ Counts all the tasks from a guild and returns that as an int if query is successful"""
     async with async_session() as session:
         result = await session.execute(text(
             "SELECT COUNT(*)"\
@@ -116,6 +122,7 @@ async def get_task_count() -> int | None:
 
 
 async def get_completed_count(task_id: int, is_completed: bool) -> int | None:
+    """ Gets the count of how many users have completed or not a task based on its task_id """
     async with async_session() as session:
         result = await session.execute(text(
             f"SELECT COUNT(DISTINCT user_id) FROM users_tasks WHERE task_id = {task_id} "\
@@ -124,5 +131,6 @@ async def get_completed_count(task_id: int, is_completed: bool) -> int | None:
         return result.first()[0]
 
 async def create_all_tables(engine: AsyncEngine) -> None:
+    """ Creates all the tables in the db """
     async with engine.begin() as connection:
         await connection.run_sync(Base.metadata.create_all)
