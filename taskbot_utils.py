@@ -41,9 +41,3 @@ def make_logger(
         logger.addHandler(stream_handler)
 
     return logger
-
-
-def get_motivational_quote():
-    """ Returns a motivational quote from api.quotable.io"""
-    response = requests.get("https://api.quotable.io/quotes/random?tags=motivational")
-    return json.loads(response.text)[0]

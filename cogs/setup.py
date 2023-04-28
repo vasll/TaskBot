@@ -1,7 +1,7 @@
 """ Contains all the commands related to setting up the bot in a server """
 import discord
 from discord.ext import commands
-from discord import Colour, Option, Embed
+from discord import Colour, Option, Embed, OptionChoice
 from discord.commands.context import ApplicationContext
 from taskbot_utils import gmt_timezones
 from loggers import logger
@@ -123,3 +123,26 @@ class Setup(commands.Cog):
             return await ctx.respond("Error: couldn't send embed")
 
         await ctx.respond("Embed sent!")
+
+
+    # TODO cmd description
+    @discord.command(name="enable_weekly_leaderboards")
+    @commands.has_permissions(administrator=True)
+    async def enable_weekly_leaderboards(
+        self, ctx: ApplicationContext,
+        day: Option(
+            int, description="Day of the week when to send the leaderboard", required=True,
+            choices=[
+                OptionChoice("Monday", value=0), OptionChoice("Tuesday", value=1),
+                OptionChoice("Wednesday", value=2), OptionChoice("Thursday", value=3),
+                OptionChoice("Friday", value=4), OptionChoice("Saturday", value=5),
+                OptionChoice("Sunday", value=6)
+            ]
+        ),
+        hour: Option(
+            int, description="Hour of the day when to send the leaderboard", required=True,
+            min=0, max=23
+        )
+    ):
+        await ctx.response.defer(ephemeral=True)
+        # TODO everything
