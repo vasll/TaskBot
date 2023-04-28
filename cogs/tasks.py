@@ -14,7 +14,7 @@ from db.schemas import Task
 
 class Tasks(commands.Cog):
     """ Cog that contains all the commands related to tasks """
-    def __init__(self, bot):
+    def __init__(self, bot: discord.Bot):
         self.bot = bot
 
     @discord.command(name="add_task", description="Sends a task into the tasks channel of your server")
@@ -85,9 +85,33 @@ class Tasks(commands.Cog):
     async def leaderboard(self, ctx: ApplicationContext):  
         await ctx.response.defer(ephemeral=True)
         
-        leaderboard_entries = await queries.get_guild_leaderboard(ctx.guild.id)
-        for entry in leaderboard_entries:
-            entry_user_id = entry[0]    # Entry user id
-            entry_task_count = entry[1] # The number of completed tasks of said user
+        try:
+            leaderboard_entries = await queries.get_guild_leaderboard(ctx.guild.id)
+        except Exception as e:
+            logger.error(f"Exception while fetching leaderboard for guild {ctx.guild.id}: {e}")
+        
+        embed = discord.Embed(title="TaskBot leaderboard", colour=Colour.gold())
 
-            # TODO
+        leaderboard_users_count = 0
+        for entry in leaderboard_entries:
+            user_id = entry[0]    # Entry user id
+            task_count = entry[1] # The number of completed tasks of said user
+
+            try:
+                user = self.bot.get_user(user_id)
+            except Exception as e:
+                logger.info(f"No user found in leaderboard entry, skipping. Exception: {e}")
+                continue
+            
+            if leaderboard_users_count == 0:
+                embed.add_field(name="First place", value=f":first_place: {user.mention} with {task_count} tasks completed", inline=False)
+            elif leaderboard_users_count == 1:
+                embed.add_field(name="Second place", value=f":second_place: {user.mention} with {task_count} tasks completed", inline=False)
+            elif leaderboard_users_count == 2:
+                embed.add_field(name="Third place", value=f":third_place: {user.mention} with {task_count} tasks completed", inline=False)
+            elif leaderboard_users_count > 2:
+                break
+            
+            leaderboard_users_count += 1
+        
+        await ctx.respond(embed=embed)
