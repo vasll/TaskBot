@@ -23,7 +23,7 @@ class RoleView(View):
             return await interaction.response.send_message("Error: couldn't add user to database")
         
         # Get serverconfig and tasks role
-        db_server_config = session.query(schemas.ServerConfigs).filter_by(guild_id=interaction.guild_id).first()
+        db_server_config = session.query(schemas.GuildConfig).filter_by(guild_id=interaction.guild_id).first()
         if db_server_config is None:
             return await interaction.channel.send(
                 "Server configuration not found. Run the `/configure` command first."

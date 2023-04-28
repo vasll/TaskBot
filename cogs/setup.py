@@ -63,14 +63,14 @@ class Setup(commands.Cog):
         # Add config to db
         try:
             # If GuildConfig exists update it. Otherwise create the new entry
-            db_guild_config = session.query(schemas.ServerConfigs).filter_by(guild_id=ctx.guild.id).first()
+            db_guild_config = session.query(schemas.GuildConfig).filter_by(guild_id=ctx.guild.id).first()
             if db_guild_config is not None:
                 db_guild_config.tasks_channel_id = tasks_channel.id
                 db_guild_config.tasks_role_id = discord.utils.get(ctx.guild.roles, name="tasks").id
                 db_guild_config.timezone = timezone
                 session.commit()
             else:
-                server_config = schemas.ServerConfigs(
+                server_config = schemas.GuildConfig(
                     guild_id = ctx.guild.id, 
                     tasks_channel_id = tasks_channel.id, 
                     tasks_role_id = discord.utils.get(ctx.guild.roles, name="tasks").id, 

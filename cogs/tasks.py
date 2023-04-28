@@ -29,7 +29,7 @@ class Tasks(commands.Cog):
             return await ctx.respond(f"You need the @tasks-manager role to add tasks!")
 
         # Load config data of guild
-        guild_config = session.query(schemas.ServerConfigs).filter_by(guild_id=ctx.guild_id).first()
+        guild_config = session.query(schemas.GuildConfig).filter_by(guild_id=ctx.guild_id).first()
         if guild_config is None:
             return await ctx.respond("Bot was not configured\nRun the `/configure` command first!")
         
@@ -61,7 +61,7 @@ class Tasks(commands.Cog):
         
         # Add task to database
         try:
-            db_task = schemas.Tasks(
+            db_task = schemas.Task(
                 title = title,
                 description = description,
                 inserted_at = datetime.now(tasks_timezone),

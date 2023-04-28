@@ -4,7 +4,7 @@ from db.database import Base, engine
 from loggers import logger
 
 
-class Users(Base):
+class User(Base):
     """ Keeps the id of a Discord user """
     __tablename__ = 'users'
 
@@ -16,7 +16,7 @@ class Users(Base):
         return f"User -> id:{self.id}"
 
 
-class Tasks(Base):
+class Task(Base):
     """ Represents a task """
     __tablename__ = 'tasks'
 
@@ -49,7 +49,7 @@ class Tasks(Base):
                f"id_creator{self.id_creator}"
 
 
-class Users_Tasks(Base):
+class UsersTasks(Base):
     """ Join table between users and tasks (many to many relationship) """
     __tablename__ = 'users_tasks'
     
@@ -63,8 +63,8 @@ class Users_Tasks(Base):
         self.is_completed = is_completed
 
 
-class ServerConfigs(Base):
-    """ Keeps the configuration for discord servers """
+class GuildConfig(Base):
+    """ Keeps the configuration for a discord guild """
     __tablename__ = 'server_configs'
 
     id = Column("id", Integer, primary_key=True, autoincrement=True)
