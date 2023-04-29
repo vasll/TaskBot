@@ -6,15 +6,17 @@
   </a>
   <h3 align="center">TaskBot</h3>
   <p align="center">
-    A Discord bot to create tasks for your community
+    A Discord bot to create tasks for your community<br>
+    <a href="https://discord.com/oauth2/authorize?client_id=1096865199077732432&permissions=8&scope=bot"><strong>» Add it to your discord server</strong></a>  
   </p>
+  
 </div>
 
 # Bot usage
 ### `/configure`
 You can configure the bot by setting the text channel where all the tasks will be sent.
 
-![](https://i.imgur.com/BKQhPGs.png)
+![image](https://user-images.githubusercontent.com/67590845/235322170-6195f468-a1ba-4050-8cfb-01c36e17fa64.png)
 
 ### `/send_role_embed`
 You can optionally send a "role embed" in a chat where users will be able to self-assign the @tasks role. This role will be pinged each time a new task is published
