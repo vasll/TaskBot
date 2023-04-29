@@ -81,15 +81,18 @@ class Tasks(commands.Cog):
 
 
     @discord.command(name="leaderboard", description="Shows the current leaderboard of tasks for this server")
-    async def leaderboard(self, ctx: ApplicationContext):  
-        await ctx.response.defer(ephemeral=True)
+    async def leaderboard(
+            self, ctx: ApplicationContext, 
+            hide_message: Option(bool, description="Only you will see the leaderboard", default=True, required=False)
+    ):  
+        await ctx.response.defer(ephemeral=hide_message)
         
         try:
             leaderboard_entries = await queries.get_guild_leaderboard(ctx.guild.id)
         except Exception as e:
             logger.error(f"Exception while fetching leaderboard for guild {ctx.guild.id}: {e}")
         
-        embed = discord.Embed(title="TaskBot leaderboard", colour=Colour.gold())
+        embed = discord.Embed(title="TaskBot leaderboard for this server", colour=Colour.gold())
 
         leaderboard_users_count = 0
         for entry in leaderboard_entries:

@@ -26,7 +26,7 @@ class Setup(commands.Cog):
                 str, description="The default task title for new tasks", required=False
             )
     ):
-        await ctx.response.defer()
+        await ctx.response.defer(ephemeral=True)
         embed = Embed(title=":gear: Bot configuration", colour=Colour.green())
 
         # Get role names from server

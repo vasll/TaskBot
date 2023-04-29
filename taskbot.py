@@ -10,7 +10,7 @@ from views.role_view import RoleView
 
 class TaskBot(Bot):
     intents = discord.Intents(
-        members=True, presences=True, messages=True, guilds=True, bans=True, message_content=True
+        members=True, messages=True, guilds=True, bans=True, message_content=True
     )
 
     def __init__(self):
