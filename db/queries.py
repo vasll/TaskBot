@@ -41,7 +41,7 @@ async def get_guild_leaderboard(guild_id: int) -> CursorResult:
         ))
         return result
 
-async def get_guild(guild_id: int) -> Guild | None:
+async def get_guild(guild_id: int) -> Guild:
     """ Gets a Guild ORM from the db or None if it doesn't exist """
     async with async_session() as session:
         result = await session.execute(
@@ -67,7 +67,7 @@ async def update_guild(guild_id, tasks_channel_id, default_task_title) -> None:
         db_guild.default_task_title = default_task_title
         await session.commit()
 
-async def get_task(task_message_id: int) -> Task | None:
+async def get_task(task_message_id: int) -> Task:
     """ Gets a task from the db """
     async with async_session() as session:
         result = await session.execute(
@@ -75,7 +75,7 @@ async def get_task(task_message_id: int) -> Task | None:
         )
         return result.scalars().first()
 
-async def get_users_tasks(user_id: int, task_id: int) -> UsersTasks | None:
+async def get_users_tasks(user_id: int, task_id: int) -> UsersTasks:
     """ Gets a UsersTasks ORM from the db """
     async with async_session() as session:
         result = await session.execute(
@@ -104,7 +104,7 @@ async def update_users_tasks(users_tasks: UsersTasks, is_completed: bool, update
         db_users_tasks.updated_at = updated_at
         await session.commit()
 
-async def get_guild_task_count(guild_id: int) -> int | None:
+async def get_guild_task_count(guild_id: int) -> int:
     """ Counts all the tasks from a guild and returns that as an int if query is successful"""
     async with async_session() as session:
         result = await session.execute(text(
@@ -116,7 +116,7 @@ async def get_guild_task_count(guild_id: int) -> int | None:
         ))
         return result.first()[0]
 
-async def get_task_count() -> int | None:
+async def get_task_count() -> int:
     """ Returns the task count of ALL the tasks stored in the db """
     async with async_session() as session:
         result = await session.execute(text(
@@ -125,7 +125,7 @@ async def get_task_count() -> int | None:
         return result.first()[0]
 
 
-async def get_completed_count(task_id: int, is_completed: bool) -> int | None:
+async def get_completed_count(task_id: int, is_completed: bool) -> int:
     """ Gets the count of how many users have completed or not a task based on its task_id """
     async with async_session() as session:
         result = await session.execute(text(
