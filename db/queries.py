@@ -55,7 +55,7 @@ async def add_guild(guild_config: Guild) -> None:
         session.add(guild_config)
         await session.commit()
 
-async def update_guild(guild_id, tasks_channel_id, timezone, default_task_title) -> None:
+async def update_guild(guild_id, tasks_channel_id, default_task_title) -> None:
     """ Updates a Guild entry in the db """
     async with async_session() as session:
         result = await session.execute(
@@ -64,7 +64,6 @@ async def update_guild(guild_id, tasks_channel_id, timezone, default_task_title)
         db_guild = result.scalars().first()
 
         db_guild.tasks_channel_id = tasks_channel_id
-        db_guild.timezone = timezone
         db_guild.default_task_title = default_task_title
         await session.commit()
 

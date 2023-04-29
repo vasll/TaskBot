@@ -21,20 +21,20 @@ class Guild(Base):
 
     id = Column("id", Integer, primary_key=True, autoincrement=False)
     tasks_channel_id = Column("tasks_channel_id", Integer)
-    timezone = Column("timezone", String, default='Etc/GMT+2')  # TODO field for scheduled tasks (not yet implemented)
     default_task_title = Column("default_task_title", String)
 
     def __init__(
-            self, tasks_channel_id: int, timezone: str = None, 
-            default_task_title: str = "New task", id: int = None
+            self, 
+            tasks_channel_id: int, 
+            default_task_title: str = "New task", 
+            id: int = None
         ):
         self.id = id
         self.tasks_channel_id = tasks_channel_id
-        self.timezone = timezone
         self.default_task_title = default_task_title
 
     def __repr__(self):
-        return f"{self.id} {self.tasks_channel_id} {self.timezone} {self.default_task_title}"
+        return f"{self.id} {self.tasks_channel_id} {self.default_task_title}"
 
 
 class Task(Base):
@@ -79,8 +79,10 @@ class UsersTasks(Base):
     user_id = Column("user_id", ForeignKey("users.id"), primary_key=True)
     task_id = Column("task_id", ForeignKey("tasks.id"), primary_key=True)
     is_completed = Column("is_completed", Boolean)
+    updated_at = Column("updated_at", String)
 
-    def __init__(self, user_id, task_id, is_completed):
+    def __init__(self, user_id, task_id, is_completed, updated_at):
         self.user_id = user_id
         self.task_id = task_id
         self.is_completed = is_completed
+        self.updated_at = updated_at

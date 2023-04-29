@@ -37,7 +37,6 @@ class Tasks(commands.Cog):
         try:
             tasks_role = get(ctx.guild.roles, name="tasks")  # Fetch the @tasks role from the guild
             tasks_channel = ctx.guild.get_channel(db_guild.tasks_channel_id)
-            tasks_timezone = pytz.timezone(db_guild.timezone)
             default_task_title = db_guild.default_task_title
         except Exception as e:
             logger.info(f"Exception while fetching guild config of guild {ctx.guild.id}: {e}")
@@ -71,8 +70,8 @@ class Tasks(commands.Cog):
         # Add task to database
         try:
             await queries.add_task(Task(
-                title, description, datetime.now(tasks_timezone), 
-                datetime.now(tasks_timezone), True, task_message.id, ctx.user.id, ctx.guild.id
+                title, description, datetime.now(pytz.utc), 
+                datetime.now(pytz.utc), True, task_message.id, ctx.user.id, ctx.guild.id
             ))
         except Exception as e:
             logger.error(f"Exception while adding task to database: {e}")

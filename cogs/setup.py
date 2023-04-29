@@ -1,9 +1,8 @@
 """ Contains all the commands related to setting up the bot in a server """
 import discord
 from discord.ext import commands
-from discord import Colour, Option, Embed, OptionChoice
+from discord import Colour, Option, Embed
 from discord.commands.context import ApplicationContext
-from taskbot_utils import gmt_timezones
 from loggers import logger
 from db.schemas import Guild
 from views.role_view import RoleView
@@ -25,10 +24,6 @@ class Setup(commands.Cog):
             tasks_channel: Option(discord.TextChannel, description='Text channel where tasks will be sent'),
             default_task_title: Option(
                 str, description="The default task title for new tasks", required=False
-            ),
-            timezone: Option(
-                str, description="Preferred timezone for dates/time. Default is 'Etc/GMT+2'",
-                required=False, choices=gmt_timezones
             )
     ):
         await ctx.response.defer()
@@ -61,27 +56,20 @@ class Setup(commands.Cog):
             embed.add_field(name="@tasks", value=":x: Can't create role", inline=False)
             embed.colour = Colour.red()
 
-        # timezone
-        embed.add_field(name="timezone", value=f":white_check_mark: Timezone set as {timezone}", inline=False)
-
         # Add guild to database
         try:
             # If Guild exists in db update it. Otherwise create the new entry
             db_guild = await queries.get_guild(ctx.guild.id)
 
             if db_guild is not None:    # Update guild
-                if timezone is None:
-                    timezone = db_guild.timezone
+                # If a default_task_title has not been given by the user, use the one already stored in the db_guild
                 if default_task_title is None:
                     default_task_title = db_guild.default_task_title
 
-                await queries.update_guild(db_guild.id, tasks_channel.id, timezone, default_task_title)
+                await queries.update_guild(db_guild.id, tasks_channel.id, default_task_title)
             else:   # Add new guild
                 await queries.add_guild(Guild(
-                    id=ctx.guild.id, 
-                    tasks_channel_id=tasks_channel.id, 
-                    timezone=timezone,
-                    default_task_title=default_task_title
+                    id=ctx.guild.id, tasks_channel_id=tasks_channel.id, default_task_title=default_task_title
                 ))
             embed.add_field(name="Configuration", value=":white_check_mark: Configuration saved", inline=False)
         except Exception as e:
@@ -123,26 +111,3 @@ class Setup(commands.Cog):
             return await ctx.respond("Error: couldn't send embed")
 
         await ctx.respond("Embed sent!")
-
-
-    # TODO cmd description
-    @discord.command(name="enable_weekly_leaderboards")
-    @commands.has_permissions(administrator=True)
-    async def enable_weekly_leaderboards(
-        self, ctx: ApplicationContext,
-        day: Option(
-            int, description="Day of the week when to send the leaderboard", required=True,
-            choices=[
-                OptionChoice("Monday", value=0), OptionChoice("Tuesday", value=1),
-                OptionChoice("Wednesday", value=2), OptionChoice("Thursday", value=3),
-                OptionChoice("Friday", value=4), OptionChoice("Saturday", value=5),
-                OptionChoice("Sunday", value=6)
-            ]
-        ),
-        hour: Option(
-            int, description="Hour of the day when to send the leaderboard", required=True,
-            min=0, max=23
-        )
-    ):
-        await ctx.response.defer(ephemeral=True)
-        # TODO everything
