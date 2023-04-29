@@ -1,3 +1,5 @@
+from datetime import datetime
+import pytz
 from sqlalchemy import update
 from discord.ui import Button, View
 from discord import ButtonStyle, Interaction, ui
@@ -33,10 +35,13 @@ class TaskView(View):
         try:
             if db_users_tasks is None:
                 await queries.add_users_tasks(UsersTasks(
-                    user_id=interaction.user.id, task_id=db_task.id, is_completed=True
+                    user_id=interaction.user.id, task_id=db_task.id, is_completed=True,
+                    updated_at=datetime.now(pytz.utc)
                 ))
             else:
-                await queries.update_users_tasks(db_users_tasks, is_completed=True)
+                await queries.update_users_tasks(
+                    db_users_tasks, is_completed=True, updated_at=datetime.now(pytz.utc)
+                )
         except Exception as e:
             logger.error(f"Exception while adding/updating users_task entry. Exception: {e}")
             return await interaction.response.send_message(
@@ -76,10 +81,13 @@ class TaskView(View):
         try:
             if db_users_tasks is None:
                 await queries.add_users_tasks(UsersTasks(
-                    user_id=interaction.user.id, task_id=db_task.id, is_completed=False
+                    user_id=interaction.user.id, task_id=db_task.id, is_completed=False,
+                    updated_at=datetime.now(pytz.utc)
                 ))
             else:
-                await queries.update_users_tasks(db_users_tasks, is_completed=False)
+                await queries.update_users_tasks(
+                    db_users_tasks, is_completed=False, updated_at=datetime.now(pytz.utc)
+                )
         except Exception as e:
             logger.error(f"Exception while adding/updating users_task entry. Exception: {e}")
             return await interaction.response.send_message(

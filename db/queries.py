@@ -89,7 +89,7 @@ async def add_users_tasks(users_tasks: UsersTasks) -> None:
         session.add(users_tasks)
         await session.commit()
 
-async def update_users_tasks(users_tasks: UsersTasks, is_completed: bool) -> None:
+async def update_users_tasks(users_tasks: UsersTasks, is_completed: bool, updated_at: str) -> None:
     """ Updates a UsersTasks entry from the db """
     async with async_session() as session:
         # Get persistent object from db
@@ -101,6 +101,7 @@ async def update_users_tasks(users_tasks: UsersTasks, is_completed: bool) -> Non
         )
         db_users_tasks = result.scalars().first()
         db_users_tasks.is_completed = is_completed
+        db_users_tasks.updated_at = updated_at
         await session.commit()
 
 async def get_guild_task_count(guild_id: int) -> int | None:
