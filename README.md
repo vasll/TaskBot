@@ -44,7 +44,3 @@ bot = {
   'token': 'INSERT YOUR TOKEN HERE'
 }
 ```
-
-# Stuff to implement
-- [ ] Weekly/Monthly task leaderboards
-- [ ] Default task title
