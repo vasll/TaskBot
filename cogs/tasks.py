@@ -2,7 +2,7 @@
 import pytz, discord
 from sqlalchemy import text
 from discord.ext import commands
-from discord import Colour, Option
+from discord import Colour, Option, SlashCommandGroup
 from discord.utils import get
 from discord.commands.context import ApplicationContext
 from loggers import logger
@@ -16,9 +16,11 @@ class Tasks(commands.Cog):
     """ Cog that contains all the commands related to tasks """
     def __init__(self, bot: discord.Bot):
         self.bot = bot
+    
+    task = SlashCommandGroup("task", "Task related commands")
 
-    @discord.command(name="add_task", description="Sends a task into the tasks channel of your server")
-    async def add_task(
+    @task.command(name="add", description="Sends a task into the tasks channel of your server")
+    async def add(
         self, ctx: ApplicationContext, 
         description: Option(str, description="Description of task", required=True),
         title: Option(str, description="Title of task", required=False)
@@ -80,7 +82,7 @@ class Tasks(commands.Cog):
         await ctx.respond(f"Task has been sent in the {tasks_channel.mention} channel!")
 
 
-    @discord.command(name="leaderboard", description="Shows the current leaderboard of tasks for this server")
+    @task.command(name="leaderboard", description="Shows the current leaderboard of tasks for this server")
     async def leaderboard(
             self, ctx: ApplicationContext, 
             hide_message: Option(bool, description="Only you will see the leaderboard", default=True, required=False)

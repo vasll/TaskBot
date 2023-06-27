@@ -1,7 +1,7 @@
 """ Contains all the commands related to setting up the bot in a server """
 import discord
 from discord.ext import commands
-from discord import Colour, Option, Embed
+from discord import Colour, Option, Embed, SlashCommandGroup
 from discord.commands.context import ApplicationContext
 from loggers import logger
 from db.schemas import Guild
@@ -13,18 +13,20 @@ class Setup(commands.Cog):
     """ Cog that contains all the commands for setting up the bot """
     def __init__(self, bot: discord.Bot):
         self.bot = bot
+    
+    setup = SlashCommandGroup("setup", "Configure the discord bot")
 
-    @discord.command(
-        name="configure",
+    @setup.command(
+        name="create",
         description="Creates or updates the bot's configuration for your server"
     )
     @commands.has_permissions(administrator=True)
     async def configure(
-            self, ctx: ApplicationContext,
-            tasks_channel: Option(discord.TextChannel, description='Text channel where tasks will be sent'),
-            default_task_title: Option(
-                str, description="The default task title for new tasks", required=False
-            )
+        self, ctx: ApplicationContext,
+        tasks_channel: Option(discord.TextChannel, description='Text channel where tasks will be sent'),
+        default_task_title: Option(
+            str, description="The default task title for new tasks", required=False
+        )
     ):
         await ctx.response.defer(ephemeral=True)
         embed = Embed(title=":gear: Bot configuration", colour=Colour.green())
@@ -80,12 +82,12 @@ class Setup(commands.Cog):
         await ctx.respond(embed=embed)
 
 
-    @discord.command(
-        name="send_role_embed", 
-        description="Sends a role embed where users can self-assign the @tasks role"
+    @setup.command(
+        name="role_picker", 
+        description="Sends a role picker for the @tasks role"
     )
     @commands.has_permissions(administrator=True)
-    async def send_role_embed(
+    async def role_picker(
         self, ctx: ApplicationContext, 
         text_channel: Option(
             discord.TextChannel, description='Text channel where role embed will be sent', required=True
