@@ -13,20 +13,15 @@ class Setup(commands.Cog):
     """ Cog that contains all the commands for setting up the bot """
     def __init__(self, bot: discord.Bot):
         self.bot = bot
-    
+
     setup = SlashCommandGroup("setup", "Configure the discord bot")
 
-    @setup.command(
-        name="create",
-        description="Creates or updates the bot's configuration for your server"
-    )
+    @setup.command(name="create", description="Creates or updates the bot's configuration for your server")
     @commands.has_permissions(administrator=True)
     async def configure(
         self, ctx: ApplicationContext,
         tasks_channel: Option(discord.TextChannel, description='Text channel where tasks will be sent'),
-        default_task_title: Option(
-            str, description="The default task title for new tasks", required=False
-        )
+        default_task_title: Option(str, description="The default task title for new tasks", required=False)
     ):
         await ctx.response.defer(ephemeral=True)
         embed = Embed(title=":gear: Bot configuration", colour=Colour.green())
@@ -78,23 +73,19 @@ class Setup(commands.Cog):
             logger.error(f"Exception while adding schemas.Guild to db of guild {ctx.guild.id}. Exception: {e}")
             embed.add_field(name="Configuration", value=":x: Configuration save failed", inline=False)
             embed.colour = Colour.red()
-        
+
         await ctx.respond(embed=embed)
 
-
-    @setup.command(
-        name="role_picker", 
-        description="Sends a role picker for the @tasks role"
-    )
+    @setup.command(name="role_picker", description="Sends a role picker for the @tasks role")
     @commands.has_permissions(administrator=True)
     async def role_picker(
-        self, ctx: ApplicationContext, 
+        self, ctx: ApplicationContext,
         text_channel: Option(
             discord.TextChannel, description='Text channel where role embed will be sent', required=True
         ),
         embed_title: Option(str, default=':pencil: Get the role here', required=False),
         embed_description: Option(
-            str, default='Click the button below if you want to get notified when new tasks are published', 
+            str, default='Click the button below if you want to get notified when new tasks are published',
             required=False
         ),
     ):
@@ -103,7 +94,7 @@ class Setup(commands.Cog):
         try:
             await text_channel.send(
                 embed=Embed(
-                    title=embed_title, 
+                    title=embed_title,
                     description=embed_description,
                     colour=Colour.blue()
                 ), view=RoleView()

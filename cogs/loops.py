@@ -10,7 +10,7 @@ class Loops(commands.Cog):
     def __init__(self, bot: discord.Bot):
         self.bot = bot
         self.presence_updater.start()
-    
+
     @tasks.loop(minutes=5.0)
     async def presence_updater(self):
         """ Updates the bot's presence with the total task count from the db """
@@ -20,11 +20,10 @@ class Loops(commands.Cog):
                 return
         except Exception as e:
             logger.error(f"Error in tasks.loop while fetching task count: {e}")
-        
+
         activity = Activity(type=ActivityType.watching, name=f"{task_count} tasks")
         await self.bot.change_presence(activity=activity)
-    
+
     @presence_updater.before_loop
     async def before_presence_updater(self):
         await self.bot.wait_until_ready()
-    

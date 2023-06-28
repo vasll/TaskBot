@@ -11,7 +11,7 @@ class RoleView(View):
     """ View where users can self-assign their role via a button """
     def __init__(self):
         super().__init__(timeout=None)
-    
+
     @ui.button(label='Add/Remove @tasks role', style=ButtonStyle.primary, custom_id='add_tasks_role')
     async def add_roles(self, button: Button, interaction: Interaction):
         # Create the user if it doesn't exist
@@ -20,7 +20,7 @@ class RoleView(View):
         except Exception as e:
             logger.error(f"Exception while adding user to db: {e}")
             return await interaction.response.send_message("Error: couldn't add user to database", ephemeral=True)
-        
+
         # Get guild configuration and tasks role
         db_guild = await queries.get_guild(interaction.guild.id)
         if db_guild is None:
@@ -34,7 +34,6 @@ class RoleView(View):
         except Exception as e:
             logger.info(f"Exception while fetching role @tasks of guild {interaction.guild.id}: {e}")
             return await interaction.response.send_message("Error: couldn't find @tasks role", ephemeral=True)
-
 
         # Check if user has the @tasks role already
         if tasks_role.id in [r.id for r in interaction.user.roles]:
@@ -56,4 +55,3 @@ class RoleView(View):
             )
 
         await interaction.response.send_message("Role assigned!", ephemeral=True)
-

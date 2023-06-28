@@ -1,6 +1,5 @@
 from datetime import datetime
 import pytz
-from sqlalchemy import update
 from discord.ui import Button, View
 from discord import ButtonStyle, Interaction, ui
 from db import queries
@@ -11,7 +10,7 @@ from loggers import logger
 class TaskView(View):
     def __init__(self):
         super().__init__(timeout=None)
-    
+
     @ui.button(label='Completed', style=ButtonStyle.green, custom_id='task_completed')
     async def green(self, button: Button, interaction: Interaction):
         # Create the user if it doesn't exist
@@ -27,7 +26,7 @@ class TaskView(View):
             return await interaction.response.send_message(
                 "Error: Didn't find any task linked to this button", ephemeral=True
             )
-        
+
         # Get users_tasks entry
         db_users_tasks = await queries.get_users_tasks(interaction.user.id, db_task.id)
 
@@ -47,16 +46,15 @@ class TaskView(View):
             return await interaction.response.send_message(
                 "Error while updating entry in database", ephemeral=True
             )
-        
+
         # Update the view's buttons with the new completed/not completed count
         completed_count = await queries.get_completed_count(db_task.id, True)
         button.label = f"{completed_count} Completed"
-        
+
         not_completed_count = await queries.get_completed_count(db_task.id, False)
         self.get_item('task_not_completed').label = f"{not_completed_count} Not completed"
-        
-        await interaction.response.edit_message(view=self)
 
+        await interaction.response.edit_message(view=self)
 
     @ui.button(label='Not completed', style=ButtonStyle.red, custom_id='task_not_completed')
     async def not_completed(self, button: Button, interaction: Interaction):
@@ -73,7 +71,7 @@ class TaskView(View):
             return await interaction.response.send_message(
                 "Error: Didn't find any task linked to this button", ephemeral=True
             )
-        
+
         # Get users_tasks entry
         db_users_tasks = await queries.get_users_tasks(interaction.user.id, db_task.id)
 
@@ -93,12 +91,12 @@ class TaskView(View):
             return await interaction.response.send_message(
                 "Error while updating entry in database", ephemeral=True
             )
-        
+
         # Update the view's buttons with the new completed/not completed count
         not_completed_count = await queries.get_completed_count(db_task.id, False)
         button.label = f"{not_completed_count} Not completed"
-        
+
         completed_count = await queries.get_completed_count(db_task.id, True)
         self.get_item('task_completed').label = f"{completed_count} Completed"
-        
+
         await interaction.response.edit_message(view=self)

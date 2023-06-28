@@ -5,5 +5,5 @@ from sqlalchemy.orm import declarative_base
 
 # Database config
 Base = declarative_base()
-engine = create_async_engine(f'sqlite+aiosqlite:///db/taskbot.db', echo=True)
+engine = create_async_engine('sqlite+aiosqlite:///db/taskbot.db', echo=True)
 async_session = async_sessionmaker(bind=engine)
