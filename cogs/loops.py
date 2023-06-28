@@ -24,6 +24,8 @@ class Loops(commands.Cog):
         activity = Activity(type=ActivityType.watching, name=f"{task_count} tasks")
         await self.bot.change_presence(activity=activity)
 
+    # TODO add task that uploads backup of db to google drive
+
     @presence_updater.before_loop
     async def before_presence_updater(self):
         await self.bot.wait_until_ready()

@@ -286,7 +286,7 @@ fabric.properties
 
 
 # Ignore config file in root folder
-config.py
+
 
 ./.idea
 .idea

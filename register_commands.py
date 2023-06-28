@@ -17,4 +17,4 @@ async def on_ready():
     print("Done. Exiting...")
     exit(0)
 
-bot.run(config.bot['token'])
+bot.run(config.discord_bot_token)

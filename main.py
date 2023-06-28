@@ -7,4 +7,4 @@ from taskbot import TaskBot
 # Run the bot
 logger.info('Starting TaskBot')
 bot = TaskBot()
-bot.run(config.bot['token'])
+bot.run(config.discord_bot_token)
