@@ -286,7 +286,9 @@ fabric.properties
 
 
 # Ignore config file in root folder
-
+/config.py
+# Ignore google service account key
+/service_account_key.json
 
 ./.idea
 .idea
