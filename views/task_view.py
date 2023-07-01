@@ -21,7 +21,7 @@ class TaskView(View):
             return await interaction.response.send_message("Error: couldn't add user to database")
 
         # Get task from db
-        db_task = await queries.get_task(task_message_id=interaction.message.id)
+        db_task = await queries.get_task(interaction.guild.id, interaction.message.id)
         if db_task is None:
             return await interaction.response.send_message(
                 "Error: Didn't find any task linked to this button", ephemeral=True
@@ -66,7 +66,7 @@ class TaskView(View):
             return await interaction.response.send_message("Error: couldn't add user to database")
 
         # Get task from db
-        db_task = await queries.get_task(task_message_id=interaction.message.id)
+        db_task = await queries.get_task(interaction.guild.id, interaction.message.id)
         if db_task is None:
             return await interaction.response.send_message(
                 "Error: Didn't find any task linked to this button", ephemeral=True

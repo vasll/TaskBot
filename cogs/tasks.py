@@ -11,6 +11,7 @@ from views.task_view import TaskView
 from db import queries
 from db.schemas import Task, User
 
+# TODO implement decorator that checks if ctx.user has the @tasks-manager role
 
 class Tasks(commands.Cog):
     """ Cog that contains all the commands related to tasks """
@@ -29,17 +30,17 @@ class Tasks(commands.Cog):
 
         # Check if user has the @tasks-manager role
         if 'tasks-manager' not in [r.name for r in ctx.user.roles]:
-            return await ctx.respond("You need the @tasks-manager role to add tasks!")
+            return await ctx.respond("You need the @tasks-manager role in order to add tasks!")
 
         # Load config data of guild
-        db_guild = await queries.get_guild(ctx.guild.id)
-        if db_guild is None:
+        guild_config = await queries.get_guild_config(ctx.guild.id)
+        if guild_config is None:
             return await ctx.respond("Bot was not configured\nRun the `/setup create` command first!")
-        print(f"DB GUILD: {db_guild}")
+
         try:
             tasks_role = get(ctx.guild.roles, name="tasks")  # Fetch the @tasks role from the guild
-            tasks_channel = ctx.guild.get_channel(db_guild.tasks_channel_id)
-            default_task_title = db_guild.default_task_title
+            tasks_channel = ctx.guild.get_channel(guild_config.tasks_channel_id)
+            default_task_title = guild_config.default_task_title
         except Exception as e:
             logger.info(f"Exception while fetching guild config of guild {ctx.guild.id}: {e}")
             return await ctx.respond("Error: couldn't find @tasks role or the #tasks channel was not configured")
@@ -126,3 +127,32 @@ class Tasks(commands.Cog):
             leaderboard_users_count += 1
 
         await ctx.respond(embed=embed)
+
+    @task.command(name="delete_latest", description="Deletes the latest task that you sent, if it exists")
+    async def delete_latest(self, ctx: ApplicationContext):
+        await ctx.response.defer(ephemeral=True)
+
+        # Check if user has the @tasks-manager role
+        if 'tasks-manager' not in [r.name for r in ctx.user.roles]:
+            return await ctx.respond("You need the @tasks-manager role in order to delete tasks!")
+
+        # Load config data of guild and get server's tasks_channel
+        guild_config = await queries.get_guild_config(ctx.guild.id)
+        if guild_config is None:
+            return await ctx.respond("Bot was not configured\nRun the `/setup create` command first!")
+        tasks_channel = ctx.guild.get_channel(guild_config.tasks_channel_id)
+
+        # Scan the latest 100 messages sent in the tasks channel
+        tasks_channel_messages = await tasks_channel.history(limit=100, oldest_first=False).flatten()
+        for message in tasks_channel_messages:
+            if message.author == self.bot.user:  # if message was sent by the bot it's most likely a task
+                task = await queries.get_task(ctx.guild.id, message.id)
+
+                # if user that created the task is the one that invoked the command
+                if task is not None and task.id_creator == ctx.user.id:
+                    await message.delete()  # Delete the discord message sent by the bot
+                    await queries.delete_task(task)  # Delete the task linked to the message from the database
+
+                    return await ctx.respond("Task deleted!")
+
+        await ctx.respond("Couldn't find task")

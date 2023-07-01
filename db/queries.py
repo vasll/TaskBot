@@ -41,7 +41,7 @@ async def get_guild_leaderboard(guild_id: int) -> CursorResult:
         ))
         return result
 
-async def get_guild(guild_id: int) -> Guild:
+async def get_guild_config(guild_id: int) -> Guild:
     """ Gets a Guild ORM from the db or None if it doesn't exist """
     async with async_session() as session:
         result = await session.execute(
@@ -49,13 +49,13 @@ async def get_guild(guild_id: int) -> Guild:
         )
         return result.scalars().first()
 
-async def add_guild(guild_config: Guild) -> None:
+async def add_guild_config(guild_config: Guild) -> None:
     """ Adds a Guild entry in the db """
     async with async_session() as session:
         session.add(guild_config)
         await session.commit()
 
-async def update_guild(guild_id, tasks_channel_id, default_task_title) -> None:
+async def update_guild_config(guild_id, tasks_channel_id, default_task_title) -> None:
     """ Updates a Guild entry in the db """
     async with async_session() as session:
         result = await session.execute(
@@ -67,13 +67,16 @@ async def update_guild(guild_id, tasks_channel_id, default_task_title) -> None:
         db_guild.default_task_title = default_task_title
         await session.commit()
 
-async def get_task(task_message_id: int) -> Task:
-    """ Gets a task from the db """
+async def get_task(guild_id: int, message_id: int) -> Task | None:
+    """ Returns the Task in the database (if any) from a guild_id and message_id """
     async with async_session() as session:
         result = await session.execute(
-            select(Task).filter_by(task_message_id=task_message_id).limit(1)
+            select(Task)
+            .filter(Task.id_guild == guild_id, Task.task_message_id == message_id)
+            .limit(1)
         )
-        return result.scalars().first()
+        row = result.scalar_one_or_none()
+        return row if row is not None else None
 
 async def get_users_tasks(user_id: int, task_id: int) -> UsersTasks:
     """ Gets a UsersTasks ORM from the db """
@@ -130,6 +133,13 @@ async def get_completed_count(task_id: int, is_completed: bool) -> int:
             f"AND users_tasks.is_completed = {int(is_completed)}"
         ))
         return result.first()[0]
+
+async def delete_task(task: Task):
+    """ Deletes a task """
+    # ! IMPORTANT - Also delete all tables that reference task.id since it gets deleted
+    async with async_session() as session:
+        session.delete(task)
+        await session.commit()
 
 async def create_all_tables(engine: AsyncEngine) -> None:
     """ Creates all the tables in the db """

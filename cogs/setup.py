@@ -56,16 +56,16 @@ class Setup(commands.Cog):
         # Add guild to database
         try:
             # If Guild exists in db update it. Otherwise create the new entry
-            db_guild = await queries.get_guild(ctx.guild.id)
+            db_guild = await queries.get_guild_config(ctx.guild.id)
 
             if db_guild is not None:    # Update guild
                 # If a default_task_title has not been given by the user, use the one already stored in the db_guild
                 if default_task_title is None:
                     default_task_title = db_guild.default_task_title
 
-                await queries.update_guild(db_guild.id, tasks_channel.id, default_task_title)
+                await queries.update_guild_config(db_guild.id, tasks_channel.id, default_task_title)
             else:   # Add new guild
-                await queries.add_guild(Guild(
+                await queries.add_guild_config(Guild(
                     id=ctx.guild.id, tasks_channel_id=tasks_channel.id, default_task_title=default_task_title
                 ))
             embed.add_field(name="Configuration", value=":white_check_mark: Configuration saved", inline=False)
