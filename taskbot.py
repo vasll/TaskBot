@@ -3,7 +3,7 @@ import discord
 from discord.ext.commands import Bot
 from loggers import logger
 from db import queries, database
-from cogs import tasks, setup, loops
+from cogs import tasks, setup, loops, misc
 from views.task_view import TaskView
 from views.role_view import RoleView
 
@@ -19,6 +19,7 @@ class TaskBot(Bot):
         self.add_cog(tasks.Tasks(self))
         self.add_cog(setup.Setup(self))
         self.add_cog(loops.Loops(self))
+        self.add_cog(misc.Misc(self))
 
     async def on_connect(self):
         await queries.create_all_tables(database.engine)

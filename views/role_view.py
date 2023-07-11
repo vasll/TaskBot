@@ -25,7 +25,7 @@ class RoleView(View):
         db_guild = await queries.get_guild_config(interaction.guild.id)
         if db_guild is None:
             return await interaction.response.send_message(
-                "Server configuration not found. Run the `/configure` command first.", ephemeral=True
+                "Bot was not configured\nRun the `/setup create` command first!", ephemeral=True
             )
 
         # Get the @tasks role from the server

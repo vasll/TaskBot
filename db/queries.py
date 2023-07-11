@@ -1,5 +1,5 @@
 """ Utility queries for TaskBot """
-from sqlalchemy import select, text
+from sqlalchemy import func, select, text
 from sqlalchemy.ext.asyncio import AsyncEngine
 from sqlalchemy.engine.cursor import CursorResult
 from db.database import async_session, Base
@@ -107,23 +107,30 @@ async def update_users_tasks(users_tasks: UsersTasks, is_completed: bool, update
         db_users_tasks.updated_at = updated_at
         await session.commit()
 
-async def get_guild_task_count(guild_id: int) -> int:
-    """ Counts all the tasks from a guild and returns that as an int if query is successful"""
-    async with async_session() as session:
-        result = await session.execute(text(
-            "SELECT COUNT(*)"
-            "FROM tasks "
-            "INNER JOIN users_tasks ON tasks.id = users_tasks.task_id "
-            "INNER JOIN guilds ON tasks.id_guild = guilds.id "
-            f"WHERE guilds.id = {guild_id}"
-        ))
-        return result.first()[0]
-
 async def get_task_count() -> int:
     """ Returns the task count of ALL the tasks stored in the db """
     async with async_session() as session:
-        result = await session.execute(text("SELECT COUNT(*) FROM tasks"))
+        result = await session.execute(select(func.count("*")).select_from(Task))
         return result.first()[0]
+
+async def get_task_count_from_guild(guild_id: int) -> int:
+    """ Returns the task count of all the tasks stored in the db for a single guild """
+    async with async_session() as session:
+        result = await session.execute(
+            select(func.count("*")).select_from(Task).where(Task.id_guild == guild_id)
+        )
+        return result.scalar_one()
+
+async def get_completed_task_count_from_guild(guild_id: int, completed: bool) -> int:
+    """ Returns the task count of all the completed tasks stored in the db for a single guild """
+    async with async_session() as session:
+        result = await session.execute(
+            select(func.count("*")).select_from(Task)
+            .join(UsersTasks, UsersTasks.task_id == Task.id)
+            .where(UsersTasks.is_completed == completed)
+            .where(Task.id_guild == guild_id)
+        )
+        return result.scalar_one()
 
 async def get_completed_count(task_id: int, is_completed: bool) -> int:
     """ Gets the count of how many users have completed or not a task based on its task_id """
