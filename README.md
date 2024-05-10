@@ -6,14 +6,10 @@
   </a>
   <h3 align="center">TaskBot</h3>
   <p align="center">
-    A Discord bot to create tasks for your community<br>
-    <a href="https://discord.com/oauth2/authorize?client_id=1096865199077732432&permissions=8&scope=bot"><strong>» Add it to your discord server</strong></a>  
+    A Discord bot to create tasks for your community<br> 
   </p>
   
 </div>
-
-## Docs
-_work in progress_
 
 ## Hosting
 If you'd like to host this bot you can create a `config.py` file in the root directory with the structure down below. If you don't want backups of the database you can set enable_backups as False
